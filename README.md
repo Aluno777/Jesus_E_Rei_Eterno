@@ -2,6 +2,9 @@
 
 Plataforma de pentest automatizado construída em Django, rodando em Docker.
 
+# RedShield PTaaS v2.5 — Vídeo demonstrativo
+https://youtu.be/ZhV9LVRdaMI
+
 ## Início Rápido
 
 ```bash
