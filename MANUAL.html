@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RedShield PTaaS — Manual v3.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --r:#E24B4A;--rb:rgba(226,75,74,.08);
+  --o:#EF9F27;--b:#378ADD;--g:#27A85F;--t:#1D9E75;--p:#9B59B6;
+  --dk:#08090c;--dk2:#0d1117;--dk3:#161b22;--dk4:#21262d;
+  --brd:rgba(226,75,74,.13);--brd2:rgba(226,75,74,.28);
+  --tx:#e6edf3;--tx2:#8b949e;--tx3:#484f58;
+  --mono:'Share Tech Mono',monospace;--sans:'Rajdhani',sans-serif;--serif:'DM Serif Display',serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--dk);color:var(--tx);font-family:var(--sans);font-size:15px;line-height:1.7}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 4px,rgba(226,75,74,.01) 4px,rgba(226,75,74,.01) 8px);pointer-events:none;z-index:0}
+.W{max-width:1100px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
+/* PROGRESS */
+#PG{position:fixed;top:0;left:0;height:2px;background:linear-gradient(90deg,var(--r),var(--o));z-index:9999;transition:width .1s;box-shadow:0 0 8px var(--r)}
+/* HEADER */
+.SH{background:var(--dk2);border-bottom:1px solid var(--brd2);position:sticky;top:0;z-index:100}
+.SH::after{content:'';display:block;height:2px;background:linear-gradient(90deg,var(--r) 0%,transparent 70%)}
+.HI{display:flex;align-items:center;gap:14px;padding:11px 24px;max-width:1100px;margin:0 auto}
+.LX{width:34px;height:34px;background:var(--r);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);display:grid;place-items:center;flex-shrink:0}
+.LX svg{width:16px;height:16px;fill:white}
+.LN{font-size:17px;font-weight:700;color:white;letter-spacing:3px;text-transform:uppercase}
+.LV{font-family:var(--mono);font-size:9px;color:var(--r);background:rgba(226,75,74,.1);border:1px solid var(--brd2);padding:2px 8px;letter-spacing:1px;margin-left:4px}
+.HN{margin-left:auto;display:flex;border:1px solid var(--brd);overflow:hidden}
+.HA{font-family:var(--mono);font-size:9px;color:var(--tx2);padding:6px 11px;letter-spacing:1px;border-right:1px solid var(--brd);transition:all .15s;text-decoration:none;display:block}
+.HA:last-child{border-right:none}
+.HA:hover{color:var(--r);background:var(--rb)}
+/* HERO */
+.hero{padding:60px 0 44px;background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(226,75,74,.09),transparent);border-bottom:1px solid var(--brd)}
+.ey{font-family:var(--mono);font-size:10px;color:var(--r);letter-spacing:3px;text-transform:uppercase;margin-bottom:14px}
+.hero h1{font-family:var(--serif);font-size:clamp(32px,5vw,56px);color:white;line-height:1.1;margin-bottom:14px}
+.hero h1 span{color:var(--r)}
+.hero p{font-size:15px;color:var(--tx2);max-width:660px;line-height:1.7;margin-bottom:24px}
+.pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px}
+.pi{font-family:var(--mono);font-size:10px;padding:4px 12px;border:1px solid;letter-spacing:1px}
+.pr{border-color:var(--r);color:var(--r);background:rgba(226,75,74,.06)}
+.pg{border-color:rgba(39,168,95,.4);color:var(--g);background:rgba(39,168,95,.05)}
+.pb{border-color:rgba(55,138,221,.4);color:var(--b);background:rgba(55,138,221,.05)}
+.po{border-color:rgba(239,159,39,.4);color:var(--o);background:rgba(239,159,39,.05)}
+/* STAT ROW */
+.SR{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:10px}
+.SB{background:var(--dk2);border:1px solid var(--brd);padding:18px 20px;position:relative;overflow:hidden}
+.SB::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.sr::before{background:var(--r)}.sg::before{background:var(--g)}.sb::before{background:var(--b)}.so::before{background:var(--o)}
+.SN{font-family:var(--serif);font-size:42px;color:white;line-height:1;margin-bottom:2px}
+.SN em{font-family:var(--mono);font-size:16px;color:var(--r);font-style:normal}
+.SL{font-family:var(--mono);font-size:9px;color:var(--tx2);letter-spacing:1px;text-transform:uppercase}
+.SS{font-family:var(--mono);font-size:9px;color:var(--tx3);margin-top:4px}
+/* TOC */
+.toc{background:var(--dk2);border:1px solid var(--brd);padding:22px 26px;margin:34px 0;position:relative}
+.toc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--r),transparent)}
+.tt{font-family:var(--mono);font-size:10px;color:var(--r);letter-spacing:3px;margin-bottom:14px;text-transform:uppercase}
+.tg{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:2px}
+.tl{display:flex;align-items:center;gap:10px;padding:7px 8px;font-family:var(--mono);font-size:11px;color:var(--tx2);text-decoration:none;border:1px solid transparent;transition:all .15s;letter-spacing:.3px}
+.tl:hover{color:var(--r);background:var(--rb);border-color:var(--brd)}
+.tn{color:var(--tx3);width:22px;flex-shrink:0;font-size:10px}
+/* SECTIONS */
+.sec{padding:48px 0;border-bottom:1px solid var(--brd)}
+.sec:last-child{border-bottom:none}
+.se{font-family:var(--mono);font-size:9px;color:var(--r);letter-spacing:3px;text-transform:uppercase;margin-bottom:8px}
+.sh{font-family:var(--serif);font-size:clamp(22px,3vw,34px);color:white;margin-bottom:12px;line-height:1.2}
+.sl{font-size:14px;color:var(--tx2);max-width:720px;margin-bottom:26px;line-height:1.8}
+p{color:var(--tx2);line-height:1.8;margin-bottom:12px}
+strong{color:var(--tx)}
+.h3{font-family:var(--mono);font-size:11px;color:var(--r);letter-spacing:1.5px;margin:26px 0 12px;text-transform:uppercase;display:flex;align-items:center;gap:10px}
+.h3::after{content:'';flex:1;height:1px;background:var(--brd)}
+/* STEPS */
+.steps{display:flex;flex-direction:column;gap:14px;margin-bottom:22px}
+.step{display:grid;grid-template-columns:50px 1fr;border:1px solid var(--brd);background:var(--dk2);overflow:hidden}
+.sn{background:rgba(226,75,74,.08);border-right:1px solid var(--brd);display:grid;place-items:center;font-family:var(--mono);font-size:20px;color:var(--r);padding:16px 0}
+.sb2{padding:14px 18px}
+.st{font-weight:600;color:white;margin-bottom:4px;font-size:15px}
+.sd{font-size:13px;color:var(--tx2);line-height:1.6}
+/* CODE */
+.cw{margin:14px 0;position:relative}
+.cl{font-family:var(--mono);font-size:9px;color:var(--tx3);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;padding:0 4px}
+.code{background:#050709;border:1px solid var(--brd);border-left:3px solid var(--r);padding:15px 20px;font-family:var(--mono);font-size:12.5px;color:#c9d1d9;line-height:1.9;overflow-x:auto}
+.code pre{margin:0;white-space:pre}
+.cc{color:#484f58}.cm{color:var(--r)}.cs{color:#a3d977}.ck{color:#58a6ff}.co{color:var(--g)}
+.cpb{position:absolute;top:28px;right:8px;font-family:var(--mono);font-size:9px;color:var(--tx3);background:var(--dk3);border:1px solid var(--brd);padding:3px 8px;cursor:pointer;letter-spacing:1px;transition:all .15s}
+.cpb:hover{color:var(--r);border-color:var(--brd2)}
+/* CALLOUTS */
+.ca{display:flex;gap:14px;padding:14px 18px;margin:16px 0;border-left:3px solid}
+.caw{border-color:var(--o);background:rgba(239,159,39,.05)}
+.cai{border-color:var(--b);background:rgba(55,138,221,.05)}
+.cad{border-color:var(--r);background:rgba(226,75,74,.05)}
+.cao{border-color:var(--g);background:rgba(39,168,95,.05)}
+.cio{font-size:18px;flex-shrink:0;margin-top:1px}
+.cab{font-size:13px;color:var(--tx2);line-height:1.7}
+.cab strong{color:var(--tx)}
+/* GRIDS */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0}
+.card{background:var(--dk2);border:1px solid var(--brd);padding:16px;position:relative}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.cr::before{background:var(--r)}.cb::before{background:var(--b)}.cg::before{background:var(--g)}
+.co2::before{background:var(--o)}.ct::before{background:var(--t)}.cp::before{background:var(--p)}
+.ci{font-size:22px;margin-bottom:10px}
+.ctit{font-weight:600;color:white;margin-bottom:4px;font-size:14px}
+.cd{font-size:12px;color:var(--tx2);line-height:1.6}
+/* TABLES */
+.T{width:100%;border-collapse:collapse;font-size:12.5px;margin:16px 0}
+.T th{text-align:left;font-family:var(--mono);font-size:9px;color:var(--r);padding:8px 12px;border-bottom:1px solid var(--brd2);letter-spacing:2px;text-transform:uppercase}
+.T td{padding:8px 12px;border-bottom:1px solid var(--brd);color:var(--tx2);vertical-align:top;line-height:1.6}
+.T tr:hover td{background:rgba(226,75,74,.03)}
+.T code{font-family:var(--mono);font-size:11px}
+.YH td{background:rgba(226,75,74,.07)!important;color:var(--r)!important;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:2px;border-top:1px solid var(--brd2)!important;border-bottom:1px solid var(--brd2)!important;padding:5px 12px!important}
+/* TAGS */
+.tag{font-family:var(--mono);font-size:9px;padding:2px 7px;letter-spacing:1px;display:inline-block}
+.tr{background:rgba(226,75,74,.12);color:var(--r);border:1px solid rgba(226,75,74,.3)}
+.tg2{background:rgba(39,168,95,.1);color:var(--g);border:1px solid rgba(39,168,95,.3)}
+.tb{background:rgba(55,138,221,.1);color:var(--b);border:1px solid rgba(55,138,221,.3)}
+.to{background:rgba(239,159,39,.1);color:var(--o);border:1px solid rgba(239,159,39,.3)}
+.tgr{background:rgba(139,148,158,.1);color:var(--tx2);border:1px solid rgba(139,148,158,.2)}
+.tp{background:rgba(155,89,182,.1);color:var(--p);border:1px solid rgba(155,89,182,.3)}
+/* POLICY BOX */
+.policy-box{background:var(--dk3);border:1px solid var(--brd2);border-left:4px solid var(--r);padding:18px 20px;margin:16px 0;font-family:var(--mono);font-size:11px;color:var(--tx2);line-height:1.9}
+.policy-box .rule{color:var(--tx);font-size:12px;margin-bottom:6px;font-weight:bold}
+.policy-box .bypass{color:var(--r)}
+.policy-box .blocked{color:var(--g)}
+.policy-box .notfound{color:var(--tx3)}
+.policy-box .redirect{color:var(--tx3)}
+.policy-box .partial{color:var(--o)}
+/* FILE TREE */
+.tree{background:#050709;border:1px solid var(--brd);padding:16px 20px;font-family:var(--mono);font-size:12px;color:var(--tx2);margin:14px 0;line-height:2.1}
+.td{color:var(--b)}.tk{color:var(--o)}.tco{color:var(--tx3)}
+/* SEARCH */
+#si{width:100%;padding:10px 14px;margin-bottom:14px;background:var(--dk2);border:1px solid var(--brd2);color:var(--tx);font-family:var(--mono);font-size:12px;outline:none;letter-spacing:.5px}
+#si:focus{border-color:var(--r)}
+/* CHECKS */
+.chks{display:flex;flex-direction:column;gap:6px;margin:14px 0}
+.chk{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--tx2);padding:7px 0;border-bottom:1px solid var(--brd)}
+.chk:last-child{border-bottom:none}
+.chkb{width:16px;height:16px;border:1px solid var(--brd2);flex-shrink:0;margin-top:2px;display:grid;place-items:center;font-size:10px}
+.chkb.done{background:var(--g);border-color:var(--g);color:white}
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:var(--brd2)}
+::-webkit-scrollbar-thumb:hover{background:var(--r)}
+/* FOOTER */
+footer{background:var(--dk2);border-top:1px solid var(--brd);padding:28px 0;margin-top:32px}
+.fi{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
+.fl{font-size:16px;font-weight:700;color:var(--r);letter-spacing:3px}
+.fm{font-family:var(--mono);font-size:9px;color:var(--tx3);letter-spacing:1px;line-height:1.8;margin-top:6px}
+.fw{font-family:var(--mono);font-size:10px;color:var(--r);background:rgba(226,75,74,.07);border:1px solid var(--brd2);padding:8px 14px;line-height:1.7;max-width:460px}
+@media(max-width:768px){.g2,.g3,.g4{grid-template-columns:1fr}.SR{grid-template-columns:1fr 1fr}.HN{display:none}}
+</style>
+</head>
+<body>
+
+<div id="PG"></div>
+
+<header class="SH">
+  <div class="HI">
+    <div class="LX"><svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.5 3.8 10.7 9 12 5.2-1.3 9-6.5 9-12V5L12 1z"/></svg></div>
+    <span class="LN">RedShield</span><span class="LV">MANUAL v3.0</span>
+    <nav class="HN">
+      <a class="HA" href="#docker">Docker</a>
+      <a class="HA" href="#install">Instalação</a>
+      <a class="HA" href="#intel">Threat Intel</a>
+      <a class="HA" href="#cves">100 CVEs</a>
+      <a class="HA" href="#wafs">30 WAFs</a>
+      <a class="HA" href="#bypass">30 Bypass</a>
+      <a class="HA" href="#pdf">PDF</a>
+      <a class="HA" href="#api">API</a>
+      <a class="HA" href="#legal">Legal</a>
+    </nav>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="W">
+    <div class="ey">// Documentação Técnica Oficial — RedShield PTaaS v3.0</div>
+    <h1>Pentest as a Service<br><span>Manual Completo v3.0</span></h1>
+    <p>Base de threat intelligence atualizada com <strong>100 CVEs (2020–2026)</strong>, <strong>30 WAFs</strong> e <strong>30 técnicas de bypass sem falso positivo</strong>. PDF profissional redesenhado. Anti-falso-positivo obrigatório — 404 e 301/302 <em>nunca</em> são bypass.</p>
+    <div class="pills">
+      <span class="pi pr">Django 4.2 + Docker</span>
+      <span class="pi pg">100 CVEs (2020–2026)</span>
+      <span class="pi pg">OWASP Top 10</span>
+      <span class="pi pb">30 WAFs detectados</span>
+      <span class="pi pb">30 bypass techniques</span>
+      <span class="pi po">PDF redesenhado v3.0</span>
+      <span class="pi po">Zero false positives</span>
+    </div>
+    <div class="SR">
+      <div class="SB sr"><div class="SN">100<em></em></div><div class="SL">CVEs monitorados</div><div class="SS">2020–2026 · CRITICAL + HIGH</div></div>
+      <div class="SB sb"><div class="SN">30<em></em></div><div class="SL">WAFs detectados</div><div class="SS">Cloud · On-premise · Open source</div></div>
+      <div class="SB sg"><div class="SN">30<em></em></div><div class="SL">Técnicas bypass</div><div class="SS">Sem falso positivo</div></div>
+      <div class="SB so"><div class="SN">0<em></em></div><div class="SL">Falsos positivos</div><div class="SS">404 ≠ bypass · 301 ≠ bypass</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="W">
+
+<nav class="toc">
+  <div class="tt">// Índice</div>
+  <div class="tg">
+    <a class="tl" href="#docker"><span class="tn">01</span>Docker no Windows</a>
+    <a class="tl" href="#install"><span class="tn">02</span>Instalação e Primeiro Start</a>
+    <a class="tl" href="#intel"><span class="tn">03</span>Threat Intelligence v3.0</a>
+    <a class="tl" href="#cves"><span class="tn">04</span>100 CVEs (2020–2026)</a>
+    <a class="tl" href="#wafs"><span class="tn">05</span>30 WAFs — Fingerprinting</a>
+    <a class="tl" href="#bypass"><span class="tn">06</span>30 Técnicas de Bypass</a>
+    <a class="tl" href="#policy"><span class="tn">07</span>Política Anti-Falso-Positivo</a>
+    <a class="tl" href="#pdf"><span class="tn">08</span>PDF Redesenhado v3.0</a>
+    <a class="tl" href="#headers"><span class="tn">09</span>Security Headers OWASP</a>
+    <a class="tl" href="#uso"><span class="tn">10</span>Como Usar</a>
+    <a class="tl" href="#api"><span class="tn">11</span>API REST</a>
+    <a class="tl" href="#legal"><span class="tn">12</span>Aviso Legal</a>
+  </div>
+</nav>
+
+<!-- 01 DOCKER -->
+<section class="sec" id="docker">
+  <div class="se">// 01</div>
+  <h2 class="sh">Docker no Windows</h2>
+  <p class="sl">O RedShield roda completamente em Docker — sem Python, Django ou dependências na máquina host.</p>
+  <div class="ca cai"><span class="cio">ℹ️</span><div class="cab"><strong>Requisitos:</strong> Windows 10 v2004 (build 19041+) ou Windows 11. CPU com VT-x / AMD-V. 4 GB RAM para o Docker.</div></div>
+  <div class="h3">WSL 2 + Docker Desktop</div>
+  <div class="cw"><div class="cl">PowerShell — Administrador</div><div class="code"><pre><span class="cc"># 1. Instalar WSL 2</span>
+<span class="cm">wsl --install</span>
+<span class="cm">wsl --set-default-version 2</span>
+
+<span class="cc"># 2. Reiniciar o sistema</span>
+
+<span class="cc"># 3. Baixar Docker Desktop em docker.com/products/docker-desktop</span>
+<span class="cc">#    Marcar "Use WSL 2 instead of Hyper-V" na instalação</span>
+
+<span class="cc"># 4. Verificar</span>
+<span class="cm">docker --version</span>
+<span class="co">Docker version 27.x.x</span>
+<span class="cm">docker compose version</span>
+<span class="co">Docker Compose version v2.x.x</span></pre></div><button class="cpb" onclick="cp(this)">COPY</button></div>
+</section>
+
+<!-- 02 INSTALAÇÃO -->
+<section class="sec" id="install">
+  <div class="se">// 02</div>
+  <h2 class="sh">Instalação e Primeiro Start</h2>
+  <p class="sl">3 comandos para subir a aplicação completa.</p>
+  <div class="cw"><div class="cl">CMD / PowerShell — pasta do projeto</div><div class="code"><pre><span class="cc"># Entrar na pasta</span>
+<span class="cm">cd redshield_django</span>
+
+<span class="cc"># Build da imagem Docker (primeira vez ~2-5 min)</span>
+<span class="cm">docker compose build</span>
+
+<span class="cc"># Subir em background</span>
+<span class="cm">docker compose up -d</span>
+
+<span class="cc"># Ver logs ao vivo</span>
+<span class="cm">docker compose logs -f</span></pre></div><button class="cpb" onclick="cp(this)">COPY</button></div>
+  <div class="ca cao"><span class="cio">🚀</span><div class="cab"><strong>Aplicação rodando!</strong> Abra <strong>http://localhost:8000</strong> no navegador.</div></div>
+  <div class="h3">Estrutura do Projeto</div>
+  <div class="tree"><pre><span class="td">redshield_django/</span>
+├── <span class="tk">Dockerfile</span>             <span class="tco"># Python 3.12-slim, usuário non-root</span>
+├── <span class="tk">docker-compose.yml</span>     <span class="tco"># Porta 8000, volumes persistentes</span>
+├── <span class="tk">entrypoint.sh</span>          <span class="tco"># migrate → runserver</span>
+├── <span class="td">scanner/</span>
+│   ├── <span class="tk">threat_intel.py</span>    <span class="tco"># ← 100 CVEs · 30 WAFs · 30 bypass</span>
+│   ├── <span class="tk">engine.py</span>          <span class="tco"># Motor: DNS, TLS, WAF, CVE, OWASP</span>
+│   ├── models.py          <span class="tco"># ScanTarget, Finding, ScanLog</span>
+│   ├── views.py           <span class="tco"># API REST + Dashboard</span>
+│   └── middleware.py      <span class="tco"># Security headers automáticos</span>
+├── <span class="td">reports/</span>
+│   └── <span class="tk">generator.py</span>       <span class="tco"># ← PDF redesenhado v3.0</span>
+├── <span class="td">templates/scanner/</span>
+│   └── dashboard.html     <span class="tco"># Interface web</span>
+├── <span class="td">db/</span>                    <span class="tco"># SQLite (volume Docker)</span>
+└── <span class="td">media/reports/</span>         <span class="tco"># PDFs gerados (volume Docker)</span></pre></div>
+</section>
+
+<!-- 03 THREAT INTEL OVERVIEW -->
+<section class="sec" id="intel">
+  <div class="se">// 03</div>
+  <h2 class="sh">Threat Intelligence v3.0 — O Que Mudou</h2>
+  <p class="sl">O arquivo <code style="font-family:var(--mono);color:var(--o)">scanner/threat_intel.py</code> foi completamente reescrito. Principais mudanças:</p>
+  <div class="g2">
+    <div class="card cr">
+      <div class="ctit">🗓 CVEs 2020–2026 (era 2017–2024)</div>
+      <div class="cd">Foco total em vulnerabilidades recentes e exploradas ativamente. Inclui 7 CVEs de 2025 e cobertura completa até Abril 2026. Removidos CVEs pré-2020 substituídos por entradas mais recentes e relevantes.</div>
+    </div>
+    <div class="card cg">
+      <div class="ctit">🛡 30 Bypass Techniques (era 20)</div>
+      <div class="cd">10 novas técnicas adicionadas: MySQL Conditional Comments, XSS JavaScript href, Path Traversal Encoded Dot-Dot, HTTP Smuggling CL-TE, Multipart Boundary, SSRF IPv6, SSRF Decimal IP, XXE via XLSX, HPP e melhorias nas existentes.</div>
+    </div>
+    <div class="card co2">
+      <div class="ctit">🚫 Zero Falso Positivo</div>
+      <div class="cd">Política rigorosa implementada no engine: HTTP 404 = NOT_FOUND (endpoint inexistente, não é bypass). HTTP 301/302 = REDIRECT (não é bypass). HTTP 200 com body contendo indicadores de bloqueio WAF = BLOQUEADO.</div>
+    </div>
+    <div class="card cb">
+      <div class="ctit">📄 PDF Redesenhado v3.0</div>
+      <div class="cd">Capa profissional com hexágono e score de risco, faixas coloridas por severidade, tabela de stats do WAF (BYPASS/BLOQUEADO/NOT_FOUND/REDIRECT/PARCIAL), numeração de páginas, header accent line e disclaimer legal.</div>
+    </div>
+  </div>
+  <div class="g4">
+    <div class="card cr"><div class="ctit">2025 — 10 CVEs</div><div class="cd">Ivanti CVE-2025-0282, SonicWall SMA 100, Apache Tomcat Partial PUT, Apache Parquet RCE, Nginx IngressNightmare, Windows Hyper-V, CLFS RansomEXX, OLE, NTLM, MMC...</div></div>
+    <div class="card cb"><div class="ctit">2024 — 22 CVEs</div><div class="cd">PAN-OS CVE-2024-3400 (CVSS 10), ScreenConnect, FortiOS SSL-VPN, regreSSHion, Jenkins, FortiManager zero-day, TeamCity, Outlook RCE Preview Pane...</div></div>
+    <div class="card cg"><div class="ctit">2023 — 19 CVEs</div><div class="cd">MOVEit, Citrix Bleed, Cisco IOS XE (CVSS 10), FortiOS Heap, TeamCity APT29, Zyxel, WinRAR APTs, HTTP/2 Rapid Reset 398Mrps...</div></div>
+    <div class="card co2"><div class="ctit">2022–2020 — 49 CVEs</div><div class="cd">Spring4Shell, Log4Shell (CVSS 10), Zerologon (CVSS 10), SMBGhost, ProxyLogon, PrintNightmare, Kaseya REvil, VMware vCenter, Confluence...</div></div>
+  </div>
+</section>
+
+<!-- 04 CVEs TABLE -->
+<section class="sec" id="cves">
+  <div class="se">// 04</div>
+  <h2 class="sh">100 CVEs — Referência Completa (2020–2026)</h2>
+  <p class="sl">Todos os CVEs incluídos no <code style="font-family:var(--mono);color:var(--o)">threat_intel.py</code>. Use a busca para filtrar por ID, nome ou tecnologia afetada.</p>
+  <input id="si" type="text" placeholder="🔍  Filtrar CVEs — ex: fortinet, exchange, rce, 2024..." oninput="filterCVEs(this.value)">
+  <table class="T" id="cvt">
+    <thead><tr><th>CVE ID</th><th>Vulnerabilidade</th><th>Sev.</th><th>CVSS</th><th>Alvo / Contexto</th></tr></thead>
+    <tbody>
+      <tr class="YH"><td colspan="5">━━ 2025/2026 — 10 CVEs ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</td></tr>
+      <tr><td><code>CVE-2025-0282</code></td><td>Ivanti Connect Secure Stack Overflow RCE</td><td><span class="tag tr">CRITICAL</span></td><td>9.0</td><td>Ivanti Connect Secure &lt; 22.7R2.5 — zero-day explorado</td></tr>
+      <tr><td><code>CVE-2025-23006</code></td><td>SonicWall SMA 100 Auth Bypass RCE</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>SonicWall SMA 100 — zero-day explorado por atores estatais</td></tr>
+      <tr><td><code>CVE-2025-24813</code></td><td>Apache Tomcat Partial PUT RCE</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>Tomcat &lt; 11.0.3 com DefaultServlet write habilitado</td></tr>
+      <tr><td><code>CVE-2025-30065</code></td><td>Apache Parquet Schema Parsing RCE</td><td><span class="tag tr">CRITICAL</span></td><td>10.0</td><td>Apache Parquet Java &lt;= 1.15.0 — CVSS máximo</td></tr>
+      <tr><td><code>CVE-2025-1974</code></td><td>Nginx Ingress Controller RCE (IngressNightmare)</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>ingress-nginx Kubernetes — acesso a todos os secrets</td></tr>
+      <tr><td><code>CVE-2025-21298</code></td><td>Windows OLE Remote Code Execution</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>Windows OLE — arquivos crafted, zero-day Jan 2025</td></tr>
+      <tr><td><code>CVE-2025-24054</code></td><td>Windows NTLM Hash Leakage Spoofing</td><td><span class="tag to">HIGH</span></td><td>8.8</td><td>Windows — arquivo .library-ms dispara auth NTLM</td></tr>
+      <tr><td><code>CVE-2025-26633</code></td><td>Windows MMC Zero-Day RCE (EncryptHub)</td><td><span class="tag to">HIGH</span></td><td>7.0</td><td>Windows MMC — explorado pelo grupo EncryptHub</td></tr>
+      <tr><td><code>CVE-2025-21333</code></td><td>Windows Hyper-V NT Kernel Privilege Escalation</td><td><span class="tag to">HIGH</span></td><td>7.8</td><td>Windows Hyper-V Integration VSP — zero-day Jan 2025</td></tr>
+      <tr><td><code>CVE-2025-29824</code></td><td>Windows CLFS Privilege Escalation (RansomEXX)</td><td><span class="tag to">HIGH</span></td><td>7.8</td><td>Windows CLFS Driver — explorado pelo ransomware RansomEXX</td></tr>
+
+      <tr class="YH"><td colspan="5">━━ 2024 — 22 CVEs ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</td></tr>
+      <tr><td><code>CVE-2024-4577</code></td><td>PHP CGI Argument Injection RCE</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>PHP-CGI Windows (locales pt, zh, tr)</td></tr>
+      <tr><td><code>CVE-2024-3400</code></td><td>PAN-OS GlobalProtect Command Injection</td><td><span class="tag tr">CRITICAL</span></td><td>10.0</td><td>Palo Alto PAN-OS — zero-day APT, CVSS máximo</td></tr>
+      <tr><td><code>CVE-2024-1708</code></td><td>ConnectWise ScreenConnect Path Traversal RCE</td><td><span class="tag tr">CRITICAL</span></td><td>10.0</td><td>ScreenConnect &lt; 23.9.8</td></tr>
+      <tr><td><code>CVE-2024-21762</code></td><td>Fortinet FortiOS SSL-VPN Out-of-Bounds RCE</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>FortiOS / FortiGate SSL-VPN</td></tr>
+      <tr><td><code>CVE-2024-6387</code></td><td>regreSSHion OpenSSH Signal Handler RCE</td><td><span class="tag tr">CRITICAL</span></td><td>8.1</td><td>OpenSSH 8.5p1–9.7p1 glibc Linux</td></tr>
+      <tr><td><code>CVE-2024-27198</code></td><td>JetBrains TeamCity Auth Bypass #1</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>TeamCity On-Premises &lt; 2023.11.4</td></tr>
+      <tr><td><code>CVE-2024-23897</code></td><td>Jenkins CLI Arbitrary File Read / RCE</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>Jenkins CLI &lt; 2.441</td></tr>
+      <tr><td><code>CVE-2024-47575</code></td><td>FortiManager Missing Auth RCE (zero-day APT)</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>FortiManager &lt; 7.2.8</td></tr>
+      <tr><td><code>CVE-2024-21887</code></td><td>Ivanti Connect Secure OS Command Injection</td><td><span class="tag tr">CRITICAL</span></td><td>9.1</td><td>Ivanti Connect Secure (encadeado +CVE-2023-46805)</td></tr>
+      <tr><td><code>CVE-2024-23917</code></td><td>JetBrains TeamCity Auth Bypass #2</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>TeamCity &lt; 2023.11.3</td></tr>
+      <tr><td><code>CVE-2024-22024</code></td><td>Ivanti Connect Secure XXE Pre-Auth</td><td><span class="tag tr">CRITICAL</span></td><td>8.3</td><td>Ivanti Connect Secure SAML component</td></tr>
+      <tr><td><code>CVE-2024-21413</code></td><td>Microsoft Outlook RCE via Preview Pane</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>Microsoft Outlook — Moniker Link bypass</td></tr>
+      <tr><td><code>CVE-2024-0012</code></td><td>PAN-OS Management Interface Auth Bypass</td><td><span class="tag tr">CRITICAL</span></td><td>9.3</td><td>Palo Alto PAN-OS Management Interface</td></tr>
+      <tr><td><code>CVE-2024-21893</code></td><td>Ivanti SSRF via SAML Component</td><td><span class="tag to">HIGH</span></td><td>8.2</td><td>Ivanti Connect Secure, Policy Secure</td></tr>
+      <tr><td><code>CVE-2024-20353</code></td><td>Cisco ASA/FTD Persistent DoS + Auth Bypass</td><td><span class="tag to">HIGH</span></td><td>8.6</td><td>Cisco ASA, FTD</td></tr>
+      <tr><td><code>CVE-2024-30078</code></td><td>Windows WiFi Driver RCE (same network)</td><td><span class="tag to">HIGH</span></td><td>8.8</td><td>Windows WiFi Driver</td></tr>
+      <tr><td><code>CVE-2024-49039</code></td><td>Windows Task Scheduler Privilege Escalation</td><td><span class="tag to">HIGH</span></td><td>8.8</td><td>Windows Task Scheduler — zero-day</td></tr>
+      <tr><td><code>CVE-2024-37085</code></td><td>VMware ESXi Active Directory Auth Bypass</td><td><span class="tag to">HIGH</span></td><td>7.2</td><td>VMware ESXi — ransomware</td></tr>
+      <tr><td><code>CVE-2024-38112</code></td><td>Windows MSHTML Zero-Day Spoofing RCE</td><td><span class="tag to">HIGH</span></td><td>7.5</td><td>Windows MSHTML (.url maliciosos)</td></tr>
+      <tr><td><code>CVE-2024-26169</code></td><td>Windows Error Reporting Service Priv Escalation</td><td><span class="tag to">HIGH</span></td><td>7.8</td><td>Windows Error Reporting — explorado before patch</td></tr>
+      <tr><td><code>CVE-2024-29988</code></td><td>Windows SmartScreen Security Bypass</td><td><span class="tag to">HIGH</span></td><td>8.8</td><td>Windows SmartScreen — campanhas phishing</td></tr>
+      <tr><td><code>CVE-2024-20656</code></td><td>VSS Volume Shadow Copy Privilege Escalation</td><td><span class="tag to">HIGH</span></td><td>7.8</td><td>Windows VSS — SYSTEM privileges</td></tr>
+
+      <tr class="YH"><td colspan="5">━━ 2023 — 19 CVEs ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</td></tr>
+      <tr><td><code>CVE-2023-34362</code></td><td>MOVEit Transfer SQL Injection (Cl0p)</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>MOVEit Transfer — 2.000+ organizações comprometidas</td></tr>
+      <tr><td><code>CVE-2023-23397</code></td><td>Microsoft Outlook NTLM Credential Theft</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>Outlook zero-click via calendar (APT28)</td></tr>
+      <tr><td><code>CVE-2023-46747</code></td><td>F5 BIG-IP TMUI Auth Bypass + RCE</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>F5 BIG-IP TMUI &le; 17.1.0</td></tr>
+      <tr><td><code>CVE-2023-4966</code></td><td>Citrix Bleed NetScaler Session Token Leak</td><td><span class="tag tr">CRITICAL</span></td><td>9.4</td><td>NetScaler ADC, Citrix Gateway</td></tr>
+      <tr><td><code>CVE-2023-20198</code></td><td>Cisco IOS XE Web UI Priv Escalation</td><td><span class="tag tr">CRITICAL</span></td><td>10.0</td><td>Cisco IOS XE Web UI — CVSS máximo</td></tr>
+      <tr><td><code>CVE-2023-22518</code></td><td>Confluence Improper Authorization</td><td><span class="tag tr">CRITICAL</span></td><td>9.1</td><td>Confluence Data Center / Server</td></tr>
+      <tr><td><code>CVE-2023-42793</code></td><td>JetBrains TeamCity CI/CD Auth Bypass (APT29)</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>TeamCity — APT29 Cozy Bear pipelines</td></tr>
+      <tr><td><code>CVE-2023-27997</code></td><td>FortiOS SSL-VPN Heap Buffer Overflow RCE</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>FortiOS SSL-VPN — pré-autenticação</td></tr>
+      <tr><td><code>CVE-2023-35078</code></td><td>Ivanti EPMM API Authentication Bypass</td><td><span class="tag tr">CRITICAL</span></td><td>10.0</td><td>Ivanti EPMM / MobileIron — CVSS máximo</td></tr>
+      <tr><td><code>CVE-2023-29357</code></td><td>Microsoft SharePoint Privilege Escalation</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>SharePoint Server JWT spoofing</td></tr>
+      <tr><td><code>CVE-2023-48788</code></td><td>Fortinet EMS SQL Injection RCE</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>FortiClientEMS &lt; 7.0.11</td></tr>
+      <tr><td><code>CVE-2023-28771</code></td><td>Zyxel Firewall OS Command Injection</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>Zyxel Firewall via IKEv2</td></tr>
+      <tr><td><code>CVE-2023-46805</code></td><td>Ivanti Connect Secure Auth Bypass</td><td><span class="tag to">HIGH</span></td><td>8.2</td><td>Ivanti Connect Secure (encadeado +CVE-2024-21887)</td></tr>
+      <tr><td><code>CVE-2023-38831</code></td><td>WinRAR RCE via Spoofed Archive Entry</td><td><span class="tag to">HIGH</span></td><td>7.8</td><td>WinRAR &lt; 6.23 — múltiplos APTs</td></tr>
+      <tr><td><code>CVE-2023-44487</code></td><td>HTTP/2 Rapid Reset DDoS (398 Mrps)</td><td><span class="tag to">HIGH</span></td><td>7.5</td><td>Nginx, Apache, HAProxy, H2 servers</td></tr>
+      <tr><td><code>CVE-2023-36884</code></td><td>Microsoft Office HTML RCE (APT Storm-0978)</td><td><span class="tag to">HIGH</span></td><td>8.3</td><td>Office, Word — APT Storm-0978</td></tr>
+      <tr><td><code>CVE-2023-20273</code></td><td>Cisco IOS XE Command Injection</td><td><span class="tag to">HIGH</span></td><td>7.2</td><td>Cisco IOS XE Web UI encadeado</td></tr>
+      <tr><td><code>CVE-2023-28252</code></td><td>Windows CLFS Priv Escalation (Nokoyawa)</td><td><span class="tag to">HIGH</span></td><td>7.8</td><td>Windows CLFS — ransomware Nokoyawa zero-day</td></tr>
+      <tr><td><code>CVE-2023-24880</code></td><td>Windows SmartScreen Bypass (Magniber)</td><td><span class="tag tb">MEDIUM</span></td><td>6.1</td><td>Windows SmartScreen — ransomware Magniber</td></tr>
+
+      <tr class="YH"><td colspan="5">━━ 2022 — 17 CVEs ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</td></tr>
+      <tr><td><code>CVE-2022-22965</code></td><td>Spring4Shell — Spring MVC RCE</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>Spring Framework &lt; 5.3.18 (JDK 9+)</td></tr>
+      <tr><td><code>CVE-2022-26134</code></td><td>Confluence OGNL Injection RCE</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>Confluence Server / Data Center</td></tr>
+      <tr><td><code>CVE-2022-22954</code></td><td>VMware Workspace ONE SSTI RCE</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>VMware Workspace ONE, Identity Manager</td></tr>
+      <tr><td><code>CVE-2022-1388</code></td><td>F5 BIG-IP iControl REST Auth Bypass</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>F5 BIG-IP iControl REST API</td></tr>
+      <tr><td><code>CVE-2022-47966</code></td><td>ManageEngine SAML Library RCE (24 produtos)</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>24 produtos ManageEngine com SSO</td></tr>
+      <tr><td><code>CVE-2022-40684</code></td><td>Fortinet Multi-Product Auth Bypass</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>FortiOS, FortiProxy, FortiSwitchManager</td></tr>
+      <tr><td><code>CVE-2022-37042</code></td><td>Zimbra Collaboration Suite Auth Bypass + RCE</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>Zimbra CS — Mboximport</td></tr>
+      <tr><td><code>CVE-2022-42475</code></td><td>FortiOS SSL-VPN Heap Overflow (zero-day APT)</td><td><span class="tag tr">CRITICAL</span></td><td>9.3</td><td>FortiOS SSL-VPN explorado antes do patch</td></tr>
+      <tr><td><code>CVE-2022-26923</code></td><td>Active Directory CS Privilege Escalation</td><td><span class="tag tr">CRITICAL</span></td><td>8.8</td><td>ADCS — obtenção de certificado Domain Admin</td></tr>
+      <tr><td><code>CVE-2022-34718</code></td><td>Windows TCP/IP Wormable RCE</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>Windows TCP/IP stack — IPv6 habilitado</td></tr>
+      <tr><td><code>CVE-2022-41040</code></td><td>ProxyNotShell — Exchange SSRF</td><td><span class="tag to">HIGH</span></td><td>8.8</td><td>Exchange Server encadeado +CVE-2022-41082</td></tr>
+      <tr><td><code>CVE-2022-30190</code></td><td>Follina — MSDT RCE Zero-Day</td><td><span class="tag to">HIGH</span></td><td>7.8</td><td>Windows MSDT via Office</td></tr>
+      <tr><td><code>CVE-2022-0847</code></td><td>Dirty Pipe — Linux Kernel LPE</td><td><span class="tag to">HIGH</span></td><td>7.8</td><td>Linux kernel 5.8+</td></tr>
+      <tr><td><code>CVE-2022-3786</code></td><td>OpenSSL 3.x X.509 Buffer Overflow</td><td><span class="tag to">HIGH</span></td><td>7.5</td><td>OpenSSL 3.0.x Punycode certs</td></tr>
+      <tr><td><code>CVE-2022-21999</code></td><td>Windows Print Spooler LPE via Symlinks</td><td><span class="tag to">HIGH</span></td><td>7.8</td><td>Windows Print Spooler</td></tr>
+      <tr><td><code>CVE-2022-24521</code></td><td>Windows CLFS Privilege Escalation</td><td><span class="tag to">HIGH</span></td><td>7.8</td><td>Windows CLFS Driver — zero-day</td></tr>
+      <tr><td><code>CVE-2022-30216</code></td><td>Windows Server Service Tampering</td><td><span class="tag to">HIGH</span></td><td>8.8</td><td>Windows Server Service — escalada SYSTEM</td></tr>
+
+      <tr class="YH"><td colspan="5">━━ 2021 — 16 CVEs ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</td></tr>
+      <tr><td><code>CVE-2021-44228</code></td><td>Log4Shell — Log4j JNDI RCE</td><td><span class="tag tr">CRITICAL</span></td><td>10.0</td><td>Log4j 2.0-beta9–2.14.1 — CVSS máximo</td></tr>
+      <tr><td><code>CVE-2021-40539</code></td><td>ManageEngine AD SelfService Plus RCE (APT27)</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>ADSelfService Plus — APT27</td></tr>
+      <tr><td><code>CVE-2021-26855</code></td><td>ProxyLogon — Exchange SSRF Pre-Auth</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>Exchange Server — massivamente explorado</td></tr>
+      <tr><td><code>CVE-2021-26084</code></td><td>Confluence OGNL Injection RCE Pre-Auth</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>Confluence Server / Data Center</td></tr>
+      <tr><td><code>CVE-2021-21985</code></td><td>VMware vCenter Server VSAN Plugin RCE</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>vCenter Server porta 443</td></tr>
+      <tr><td><code>CVE-2021-22986</code></td><td>F5 BIG-IP iControl Unauthenticated RCE</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>F5 BIG-IP, BIG-IQ iControl REST</td></tr>
+      <tr><td><code>CVE-2021-34527</code></td><td>PrintNightmare Windows Print Spooler RCE</td><td><span class="tag tr">CRITICAL</span></td><td>8.8</td><td>Windows Print Spooler</td></tr>
+      <tr><td><code>CVE-2021-44142</code></td><td>Samba VFS Heap Write RCE as Root</td><td><span class="tag tr">CRITICAL</span></td><td>9.9</td><td>Samba VFS module fruit</td></tr>
+      <tr><td><code>CVE-2021-30116</code></td><td>Kaseya VSA Multiple RCE (REvil Supply Chain)</td><td><span class="tag tr">CRITICAL</span></td><td>10.0</td><td>Kaseya VSA — REvil supply chain ransomware</td></tr>
+      <tr><td><code>CVE-2021-27101</code></td><td>Accellion FTA SQL Injection RCE (Cl0p)</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>Accellion FTA (produto EOL)</td></tr>
+      <tr><td><code>CVE-2021-36942</code></td><td>Windows LSA Spoofing (PetitPotam)</td><td><span class="tag to">HIGH</span></td><td>9.8</td><td>Active Directory — NTLM relay</td></tr>
+      <tr><td><code>CVE-2021-40438</code></td><td>Apache HTTP Server mod_proxy SSRF</td><td><span class="tag to">HIGH</span></td><td>9.0</td><td>Apache 2.4.48 mod_proxy</td></tr>
+      <tr><td><code>CVE-2021-41773</code></td><td>Apache HTTPD 2.4.49 Path Traversal RCE</td><td><span class="tag to">HIGH</span></td><td>7.5</td><td>Apache HTTPD 2.4.49 exclusivamente</td></tr>
+      <tr><td><code>CVE-2021-3156</code></td><td>Sudo Heap Buffer Overflow (Baron Samedit)</td><td><span class="tag to">HIGH</span></td><td>7.8</td><td>sudo &le; 1.9.5p1 — local root sem senha</td></tr>
+      <tr><td><code>CVE-2021-33766</code></td><td>Microsoft Exchange ProxyToken Auth Bypass</td><td><span class="tag to">HIGH</span></td><td>7.3</td><td>Exchange Server — ProxyToken</td></tr>
+      <tr><td><code>CVE-2021-28482</code></td><td>Microsoft Exchange Post-Auth RCE</td><td><span class="tag to">HIGH</span></td><td>8.8</td><td>Exchange Server post-authentication</td></tr>
+
+      <tr class="YH"><td colspan="5">━━ 2020 — 16 CVEs ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</td></tr>
+      <tr><td><code>CVE-2020-1472</code></td><td>Zerologon — Netlogon Privilege Escalation</td><td><span class="tag tr">CRITICAL</span></td><td>10.0</td><td>Active Directory Domain Controller — CVSS máximo</td></tr>
+      <tr><td><code>CVE-2020-0796</code></td><td>SMBGhost — Windows SMBv3 Wormable RCE</td><td><span class="tag tr">CRITICAL</span></td><td>10.0</td><td>Windows SMBv3 — wormable</td></tr>
+      <tr><td><code>CVE-2020-5902</code></td><td>F5 BIG-IP TMUI Path Traversal RCE</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>F5 BIG-IP Traffic Management UI</td></tr>
+      <tr><td><code>CVE-2020-1938</code></td><td>Ghostcat — Apache Tomcat AJP File Inclusion</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>Tomcat AJP connector porta 8009</td></tr>
+      <tr><td><code>CVE-2020-14882</code></td><td>Oracle WebLogic Console Auth Bypass RCE</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>Oracle WebLogic Server console admin</td></tr>
+      <tr><td><code>CVE-2020-15505</code></td><td>MobileIron MDM Unauthenticated RCE</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>MobileIron Core — APTs chineses/iranianos</td></tr>
+      <tr><td><code>CVE-2020-10189</code></td><td>ManageEngine Desktop Central Deserialization RCE</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>ManageEngine Desktop Central</td></tr>
+      <tr><td><code>CVE-2020-12812</code></td><td>FortiOS SSL-VPN Case Insensitive Auth Bypass</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>FortiOS SSL-VPN — username case bug</td></tr>
+      <tr><td><code>CVE-2020-25213</code></td><td>WordPress File Manager Plugin Unauth RCE</td><td><span class="tag tr">CRITICAL</span></td><td>10.0</td><td>WP File Manager &le; 6.8 — 700k+ sites</td></tr>
+      <tr><td><code>CVE-2020-17530</code></td><td>Apache Struts 2 OGNL Double Evaluation RCE</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>Struts 2 OGNL via tags</td></tr>
+      <tr><td><code>CVE-2020-16875</code></td><td>Microsoft Exchange Memory Corruption RCE</td><td><span class="tag tr">CRITICAL</span></td><td>9.1</td><td>Exchange Server — PowerShell cmdlets</td></tr>
+      <tr><td><code>CVE-2020-7961</code></td><td>Liferay Portal Java Deserialization RCE</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>Liferay Portal &lt; 7.2 CE GA2</td></tr>
+      <tr><td><code>CVE-2020-2555</code></td><td>Oracle Coherence Deserialization RCE</td><td><span class="tag tr">CRITICAL</span></td><td>9.8</td><td>Oracle Coherence / WebLogic T3 protocol</td></tr>
+      <tr><td><code>CVE-2020-0601</code></td><td>CurveBall Windows CryptoAPI ECC Spoofing</td><td><span class="tag to">HIGH</span></td><td>8.1</td><td>Windows CryptoAPI ECC certificates</td></tr>
+      <tr><td><code>CVE-2020-3452</code></td><td>Cisco ASA FTD WebVPN Path Traversal</td><td><span class="tag to">HIGH</span></td><td>7.5</td><td>Cisco ASA WebVPN</td></tr>
+      <tr><td><code>CVE-2020-0688</code></td><td>Microsoft Exchange Static Crypto Key RCE</td><td><span class="tag to">HIGH</span></td><td>8.8</td><td>Exchange Server ViewState static key</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 05 WAFs -->
+<section class="sec" id="wafs">
+  <div class="se">// 05</div>
+  <h2 class="sh">30 WAFs — Fingerprinting Passivo</h2>
+  <p class="sl">Detecção não intrusiva por análise de headers HTTP, cookies e padrões no body. Nenhum request adicional intrusivo enviado.</p>
+  <table class="T"><thead><tr><th>WAF</th><th>Vendor</th><th>Tipo</th><th>Principais assinaturas</th></tr></thead><tbody>
+    <tr><td><strong>Cloudflare</strong></td><td>Cloudflare Inc.</td><td><span class="tag tb">Cloud</span></td><td><code>cf-ray</code>, <code>cf-cache-status</code>, cookies <code>__cf_bm</code>, <code>cf_clearance</code></td></tr>
+    <tr><td><strong>AWS WAF</strong></td><td>Amazon Web Services</td><td><span class="tag tb">Cloud</span></td><td><code>x-amzn-requestid</code>, <code>x-amz-cf-id</code>, cookies <code>awsalb</code></td></tr>
+    <tr><td><strong>Akamai</strong></td><td>Akamai Technologies</td><td><span class="tag tb">Cloud/CDN</span></td><td><code>x-akamai-transformed</code>, <code>akamai-origin-hop</code>, cookies <code>ak_bmsc</code>, <code>_abck</code></td></tr>
+    <tr><td><strong>Kona Site Defender (Akamai)</strong></td><td>Akamai Technologies</td><td><span class="tag tb">Cloud Enterprise</span></td><td><code>server: AkamaiGHost</code>, cookies <code>ak_bmsc</code>, <code>_abck</code></td></tr>
+    <tr><td><strong>Imperva / Incapsula</strong></td><td>Imperva</td><td><span class="tag tb">Cloud</span></td><td><code>x-iinfo</code>, cookies <code>visid_incap</code>, <code>incap_ses</code>, body <code>_Incapsula_Resource</code></td></tr>
+    <tr><td><strong>Microsoft Azure WAF</strong></td><td>Microsoft Azure</td><td><span class="tag tb">Cloud</span></td><td><code>x-azure-ref</code>, <code>x-azure-requestid</code>, body <code>Azure Web Application Firewall</code></td></tr>
+    <tr><td><strong>Google Cloud Armor</strong></td><td>Google Cloud</td><td><span class="tag tb">Cloud</span></td><td><code>x-google-abuse-policy</code>, <code>via: 1.1 google</code></td></tr>
+    <tr><td><strong>Fastly WAF / Signal Sciences</strong></td><td>Fastly / Signal Sciences</td><td><span class="tag tb">Cloud</span></td><td><code>x-sigsci-tags</code>, <code>x-sigsci-requestid</code>, status <code>406</code></td></tr>
+    <tr><td><strong>Sucuri</strong></td><td>Sucuri / GoDaddy</td><td><span class="tag tb">Cloud</span></td><td><code>x-sucuri-id</code>, <code>x-sucuri-block</code>, cookie <code>sucuri_cloudproxy_uuid</code></td></tr>
+    <tr><td><strong>Wallarm</strong></td><td>Wallarm Inc.</td><td><span class="tag tg2">Cloud/Hybrid</span></td><td><code>x-wallarm-node-uuid</code>, body <code>Wallarm</code></td></tr>
+    <tr><td><strong>Reblaze</strong></td><td>Reblaze Technologies</td><td><span class="tag tb">Cloud</span></td><td><code>x-reblaze-protection</code>, cookies <code>rbzid</code>, <code>rbzsessionid</code></td></tr>
+    <tr><td><strong>StackPath</strong></td><td>StackPath</td><td><span class="tag tb">Cloud/CDN</span></td><td><code>x-sp-url</code>, <code>x-sp-waf</code>, body <code>StackPath</code></td></tr>
+    <tr><td><strong>Alibaba Cloud WAF</strong></td><td>Alibaba Cloud</td><td><span class="tag tb">Cloud</span></td><td><code>ali-cdn-real-ip</code>, cookie <code>acw_tc</code>, body <code>aliyun</code></td></tr>
+    <tr><td><strong>Tencent Cloud WAF</strong></td><td>Tencent Cloud</td><td><span class="tag tb">Cloud</span></td><td><code>x-client-ip</code>, <code>x-from-cdn</code>, body <code>qcloud</code></td></tr>
+    <tr><td><strong>Huawei Cloud WAF</strong></td><td>Huawei Technologies</td><td><span class="tag tb">Cloud</span></td><td><code>x-hws-err</code>, <code>x-hws-mediation</code>, body <code>HuaweiCloud</code></td></tr>
+    <tr><td><strong>Comodo WAF</strong></td><td>Comodo Security</td><td><span class="tag tb">Cloud</span></td><td><code>x-comodo-waf-id</code>, body <code>Comodo Web Application Firewall</code></td></tr>
+    <tr><td><strong>F5 BIG-IP ASM</strong></td><td>F5 Networks</td><td><span class="tag to">On-premise</span></td><td><code>bigipserver</code>, <code>x-wa-info</code>, <code>x-f5-dr</code>, cookies <code>f5avr</code>, <code>ts</code></td></tr>
+    <tr><td><strong>Fortinet FortiWeb</strong></td><td>Fortinet</td><td><span class="tag to">On-premise</span></td><td><code>x-waf-event-info</code>, <code>fortiwafsid</code>, cookie <code>FORTIWAFSID</code></td></tr>
+    <tr><td><strong>Citrix NetScaler AppFW</strong></td><td>Citrix Systems</td><td><span class="tag to">On-premise</span></td><td><code>x-citrix-nsapplication</code>, <code>via: NS-CACHE</code>, cookies <code>NSC_</code></td></tr>
+    <tr><td><strong>Radware AppWall</strong></td><td>Radware</td><td><span class="tag to">On-premise</span></td><td><code>x-sl-compstate</code>, cookie <code>rdwr</code>, body <code>AppWall</code></td></tr>
+    <tr><td><strong>Barracuda WAF</strong></td><td>Barracuda Networks</td><td><span class="tag tg2">On-prem/Cloud</span></td><td><code>x-barracuda-start-time</code>, cookie <code>barra_counter_session</code></td></tr>
+    <tr><td><strong>SonicWall</strong></td><td>SonicWall Inc.</td><td><span class="tag to">On-prem NGFW</span></td><td><code>x-sonicwall-</code>, body <code>SonicWALL</code></td></tr>
+    <tr><td><strong>Juniper Networks WAF</strong></td><td>Juniper Networks</td><td><span class="tag to">On-prem NGFW</span></td><td><code>x-juniper-</code>, body <code>JNPR-</code></td></tr>
+    <tr><td><strong>Palo Alto NGFW</strong></td><td>Palo Alto Networks</td><td><span class="tag to">NGFW</span></td><td><code>x-pan-</code>, <code>pan-os</code>, body <code>Palo Alto Networks</code></td></tr>
+    <tr><td><strong>ModSecurity</strong></td><td>Trustwave / OWASP</td><td><span class="tag tg2">Open Source</span></td><td><code>x-modsec-score</code>, body <code>ModSecurity</code>, status <code>406</code></td></tr>
+    <tr><td><strong>Nginx ModSecurity (OWASP CRS)</strong></td><td>Nginx + OWASP</td><td><span class="tag tg2">Open Source</span></td><td><code>server: nginx</code>, body <code>OWASP CRS</code>, <code>blocked by nginx ModSecurity</code></td></tr>
+    <tr><td><strong>NAXSI (Nginx WAF)</strong></td><td>NBS System</td><td><span class="tag tg2">Nginx Module</span></td><td><code>x-data-origin</code>, body <code>NAXSI</code>, status <code>418</code></td></tr>
+    <tr><td><strong>OpenResty / LuaJIT WAF</strong></td><td>OpenResty Inc.</td><td><span class="tag tg2">Open Source</span></td><td><code>server: openresty</code>, body <code>LuaJIT</code></td></tr>
+    <tr><td><strong>Varnish Cache / Fastly</strong></td><td>Fastly / Varnish</td><td><span class="tag tgr">CDN/Cache</span></td><td><code>x-varnish</code>, <code>x-served-by</code>, <code>fastly-debug-digest</code></td></tr>
+    <tr><td><strong>Wordfence</strong></td><td>Defiant Inc.</td><td><span class="tag tgr">WordPress Plugin</span></td><td>cookies <code>wfvt_</code>, <code>wordfence_verifiedHuman</code>, body <code>generated by wordfence</code></td></tr>
+  </tbody></table>
+</section>
+
+<!-- 06 BYPASS -->
+<section class="sec" id="bypass">
+  <div class="se">// 06</div>
+  <h2 class="sh">30 Técnicas de Bypass de WAF</h2>
+  <p class="sl">10 novas técnicas adicionadas na v3.0. Todas seguem a política anti-falso-positivo — ver seção 07.</p>
+  <div class="g2">
+    <div class="card cr"><div class="ctit">01 — Null Byte SQL Injection</div><div class="cd"><span style="font-family:var(--mono);font-size:10px;color:var(--r)">SQLi</span><br>Payload: <code style="font-family:var(--mono);font-size:10px">1%00' OR '1'='1</code> — Byte nulo quebra o token antes do payload para parsers C/C++.</div></div>
+    <div class="card cr"><div class="ctit">02 — Double URL Encoding</div><div class="cd"><span style="font-family:var(--mono);font-size:10px;color:var(--r)">SQLi/XSS</span><br>WAF decodifica uma vez; aplicação decodifica duas. Bypassa WAFs cloud sem double-decode.</div></div>
+    <div class="card co2"><div class="ctit">03 — SQL Keyword Case Variation</div><div class="cd"><span style="font-family:var(--mono);font-size:10px;color:var(--o)">SQLi</span><br><code style="font-family:var(--mono);font-size:10px">SeLeCt+UsEr()+FrOm+dUaL</code> — Bypassa regras case-sensitive.</div></div>
+    <div class="card co2"><div class="ctit">04 — SQL Inline Comment Fragmentation</div><div class="cd"><span style="font-family:var(--mono);font-size:10px;color:var(--o)">SQLi</span><br><code style="font-family:var(--mono);font-size:10px">SE/**/LE/**/CT</code> — Comentários fragmentam tokens de palavras-chave.</div></div>
+    <div class="card co2"><div class="ctit">05 — MySQL Conditional Comment Evasion ✨ NEW</div><div class="cd"><span style="font-family:var(--mono);font-size:10px;color:var(--o)">SQLi</span><br><code style="font-family:var(--mono);font-size:10px">/*!50000SELECT*/</code> — WAF vê comentário; MySQL executa como SQL válido.</div></div>
+    <div class="card cb"><div class="ctit">06 — Unicode UTF-8 IIS Notation</div><div class="cd"><span style="font-family:var(--mono);font-size:10px;color:var(--b)">SQLi/XSS</span><br><code style="font-family:var(--mono);font-size:10px">%u0053%u0045...</code> — Notation %uXXXX do IIS. Alta efetividade em ASP.NET legado.</div></div>
+    <div class="card cb"><div class="ctit">07 — XSS HTML Entity Decimal Encoding</div><div class="cd"><span style="font-family:var(--mono);font-size:10px;color:var(--b)">XSS</span><br>Tags como entidades decimais. Browser renderiza e executa; WAF não reconhece.</div></div>
+    <div class="card cb"><div class="ctit">08 — XSS SVG onload Backtick Bypass</div><div class="cd"><span style="font-family:var(--mono);font-size:10px;color:var(--b)">XSS</span><br><code style="font-family:var(--mono);font-size:10px">&lt;svg/onload=alert`1`&gt;</code> — Sem espaço, backticks no lugar de parênteses.</div></div>
+    <div class="card cb"><div class="ctit">09 — XSS JavaScript Protocol href ✨ NEW</div><div class="cd"><span style="font-family:var(--mono);font-size:10px;color:var(--b)">XSS</span><br><code style="font-family:var(--mono);font-size:10px">&lt;a href=javascript:alert(1)&gt;</code> — Sem script tag; bypassa filtros focados em &lt;script&gt;.</div></div>
+    <div class="card cb"><div class="ctit">10 — XSS IMG onerror Polyglot ✨ NEW</div><div class="cd"><span style="font-family:var(--mono);font-size:10px;color:var(--b)">XSS</span><br><code style="font-family:var(--mono);font-size:10px">&lt;img src=x onerror=alert(1)//&gt;</code> — IMG com src inválido sem script tag.</div></div>
+    <div class="card cr"><div class="ctit">11 — Path Traversal Double URL Encoding</div><div class="cd"><span style="font-family:var(--mono);font-size:10px;color:var(--r)">LFI</span><br><code style="font-family:var(--mono);font-size:10px">..%252F..%252Fetc%252Fpasswd</code> — App decodifica duas vezes.</div></div>
+    <div class="card cr"><div class="ctit">12 — Path Traversal Unicode Overlong Slash</div><div class="cd"><span style="font-family:var(--mono);font-size:10px;color:var(--r)">LFI</span><br><code style="font-family:var(--mono);font-size:10px">..%c0%af..%c0%afetc</code> — Barra como UTF-8 inválido. CVE-2001-0131.</div></div>
+    <div class="card cr"><div class="ctit">13 — Path Traversal Encoded Dot-Dot ✨ NEW</div><div class="cd"><span style="font-family:var(--mono);font-size:10px;color:var(--r)">LFI</span><br><code style="font-family:var(--mono);font-size:10px">%2e%2e%2f%2e%2e%2fetc%2fpasswd</code> — Dot-dot-slash completamente codificado.</div></div>
+    <div class="card co2"><div class="ctit">14 — HTTP Header IP Spoof via X-Forwarded-For</div><div class="cd"><span style="font-family:var(--mono);font-size:10px;color:var(--o)">IP Bypass</span><br><code style="font-family:var(--mono);font-size:10px">X-Forwarded-For: 127.0.0.1</code> — Apps sem validação de proxies.</div></div>
+    <div class="card co2"><div class="ctit">15 — HTTP Header IP Spoof via X-Real-IP ✨ NEW</div><div class="cd"><span style="font-family:var(--mono);font-size:10px;color:var(--o)">IP Bypass</span><br><code style="font-family:var(--mono);font-size:10px">X-Real-IP: 127.0.0.1</code> — Alternativa XFF para ambientes Nginx.</div></div>
+    <div class="card co2"><div class="ctit">16 — Chunked Transfer Encoding Fragmentation</div><div class="cd"><span style="font-family:var(--mono);font-size:10px;color:var(--o)">WAF Evasion</span><br>Fragmenta payload em chunks. WAFs sem reassembly perdem o contexto.</div></div>
+    <div class="card cp"><div class="ctit">17 — HTTP Request Smuggling TE-CL</div><div class="cd"><span style="font-family:var(--mono);font-size:10px;color:var(--p)">Request Smuggling</span><br>Conflito Transfer-Encoding / Content-Length. Engana proxy sobre limites.</div></div>
+    <div class="card cp"><div class="ctit">18 — HTTP Request Smuggling CL-TE ✨ NEW</div><div class="cd"><span style="font-family:var(--mono);font-size:10px;color:var(--p)">Request Smuggling</span><br>Variante CL-TE. Frontend usa CL; backend usa TE — janela de injeção.</div></div>
+    <div class="card cb"><div class="ctit">19 — JSON Content-Type SQLi Bypass</div><div class="cd"><span style="font-family:var(--mono);font-size:10px;color:var(--b)">SQLi/NoSQLi</span><br>Payload em JSON. WAFs para form-urlencoded ignoram o body completamente.</div></div>
+    <div class="card cb"><div class="ctit">20 — Multipart Boundary Injection ✨ NEW</div><div class="cd"><span style="font-family:var(--mono);font-size:10px;color:var(--b)">WAF Evasion</span><br>Payload no nome do campo multipart. Parsers WAF raramente inspecionam esta área.</div></div>
+    <div class="card ct"><div class="ctit">21 — SSRF via DNS Rebinding</div><div class="cd"><span style="font-family:var(--mono);font-size:10px;color:var(--t)">SSRF</span><br>DNS controlado rebinda para IP interno após check do WAF.</div></div>
+    <div class="card ct"><div class="ctit">22 — SSRF via IPv6 Loopback ✨ NEW</div><div class="cd"><span style="font-family:var(--mono);font-size:10px;color:var(--t)">SSRF</span><br><code style="font-family:var(--mono);font-size:10px">http://[::1]/admin</code> — Bypass de filtros baseados apenas em 127.0.0.1.</div></div>
+    <div class="card ct"><div class="ctit">23 — SSRF via Decimal IP Notation ✨ NEW</div><div class="cd"><span style="font-family:var(--mono);font-size:10px;color:var(--t)">SSRF</span><br><code style="font-family:var(--mono);font-size:10px">http://2130706433/</code> — 127.0.0.1 como inteiro decimal.</div></div>
+    <div class="card ct"><div class="ctit">24 — GraphQL Alias Introspection Bypass</div><div class="cd"><span style="font-family:var(--mono);font-size:10px;color:var(--t)">GraphQL</span><br>WAFs raramente inspecionam payload GraphQL em profundidade. Aliasing e batching.</div></div>
+    <div class="card cg"><div class="ctit">25 — XXE via SVG Upload</div><div class="cd"><span style="font-family:var(--mono);font-size:10px;color:var(--g)">XXE/LFI</span><br>SVG com DOCTYPE ENTITY apontando para <code style="font-family:var(--mono);font-size:10px">file:///etc/passwd</code>.</div></div>
+    <div class="card cg"><div class="ctit">26 — XXE via XLSX Upload ✨ NEW</div><div class="cd"><span style="font-family:var(--mono);font-size:10px;color:var(--g)">XXE/LFI</span><br>XLSX são ZIPs com XML. XXE no XML interno pode vazar arquivos do servidor.</div></div>
+    <div class="card cb"><div class="ctit">27 — CRLF Injection Header Splitting</div><div class="cd"><span style="font-family:var(--mono);font-size:10px;color:var(--b)">Header Injection</span><br><code style="font-family:var(--mono);font-size:10px">%0d%0aSet-Cookie:%20session=x</code> — Injeta headers adicionais.</div></div>
+    <div class="card cp"><div class="ctit">28 — SSTI Polyglot Multi-Engine</div><div class="cd"><span style="font-family:var(--mono);font-size:10px;color:var(--p)">SSTI</span><br><code style="font-family:var(--mono);font-size:10px">{{7*7}}${7*7}&lt;%=7*7%&gt;</code> — Jinja2, Freemarker, ERB, Ruby, Smarty.</div></div>
+    <div class="card co2"><div class="ctit">29 — Wildcard Glob in OS Command Injection</div><div class="cd"><span style="font-family:var(--mono);font-size:10px;color:var(--o)">OS CMDi</span><br><code style="font-family:var(--mono);font-size:10px">cat+/etc/pa??wd</code> — Wildcards no lugar de strings literais.</div></div>
+    <div class="card cb"><div class="ctit">30 — HTTP Parameter Pollution (HPP) ✨ NEW</div><div class="cd"><span style="font-family:var(--mono);font-size:10px;color:var(--b)">SQLi/Evasion</span><br><code style="font-family:var(--mono);font-size:10px">?id=1&amp;id=2 OR 1=1</code> — Parâmetro duplicado. WAFs que avaliam só a 1ª ocorrência.</div></div>
+  </div>
+</section>
+
+<!-- 07 POLÍTICA ANTI-FALSO-POSITIVO -->
+<section class="sec" id="policy">
+  <div class="se">// 07 — CRÍTICO</div>
+  <h2 class="sh">Política Anti-Falso-Positivo</h2>
+  <p class="sl">Uma das principais melhorias da v3.0. Resultados falso-positivos comprometem a credibilidade do relatório e o tornam inutilizável profissionalmente.</p>
+
+  <div class="policy-box">
+    <div class="rule">// REGRAS DE CLASSIFICAÇÃO — engine.py → test_waf_bypasses()</div>
+    <br>
+    <span class="bypass">BYPASS</span>    → HTTP 200..299 <strong>E</strong> body NÃO contém padrões de bloqueio WAF<br>
+    <span class="blocked">BLOQUEADO</span> → HTTP 403, 406, 429, 503, 418<br>
+    <span class="blocked">BLOQUEADO</span> → HTTP 200..299 com body contendo: "access denied", "request blocked",<br>
+                "cloudflare", "incapsula incident", "waf blocked", etc.<br>
+    <span class="notfound">NOT_FOUND</span> → HTTP 404 — endpoint /search inexistente no alvo — <strong>NÃO É BYPASS</strong><br>
+    <span class="redirect">REDIRECT</span>  → HTTP 301, 302, 307, 308 — redirecionamento — <strong>NÃO É BYPASS</strong><br>
+    <span class="partial">PARCIAL</span>   → HTTP 400, 405, 500, 502 — resposta anômala, requer análise manual<br>
+    ERROR     → Timeout ou falha de conexão
+  </div>
+
+  <div class="ca cad">
+    <span class="cio">⚠️</span>
+    <div class="cab">
+      <strong>Por que 404 não é bypass?</strong><br>
+      Um 404 significa que o endpoint <code style="font-family:var(--mono);font-size:11px">/search?q=payload</code> simplesmente não existe naquele servidor. O WAF nem chegou a ser exercitado. Reportar isso como "bypass" seria enganar o cliente — o relatório perderia toda a credibilidade profissional.
+    </div>
+  </div>
+
+  <div class="ca caw">
+    <span class="cio">⚠️</span>
+    <div class="cab">
+      <strong>Por que 301/302 não é bypass?</strong><br>
+      Um redirect indica que o servidor está redirecionando a requisição — frequentemente para uma página de bloqueio do próprio WAF, ou para HTTPS. Não há evidência de que o payload chegou a ser executado ou avaliado pela aplicação.
+    </div>
+  </div>
+
+  <div class="h3">Bypass Confirmado — Exemplo Correto</div>
+  <table class="T"><thead><tr><th>Técnica</th><th>HTTP Status</th><th>Body contém bloqueio?</th><th>Resultado correto</th></tr></thead><tbody>
+    <tr><td>Double URL Encoding</td><td>200</td><td>Não</td><td><span class="tag tr">BYPASS</span></td></tr>
+    <tr><td>Null Byte SQLi</td><td>403</td><td>—</td><td><span class="tag tg2">BLOQUEADO</span></td></tr>
+    <tr><td>Path Traversal Double</td><td>404</td><td>—</td><td><span class="tag tgr">NOT_FOUND</span></td></tr>
+    <tr><td>SSRF via IPv6</td><td>301</td><td>—</td><td><span class="tag tgr">REDIRECT</span></td></tr>
+    <tr><td>XSS SVG onload</td><td>200</td><td>Sim ("access denied")</td><td><span class="tag tg2">BLOQUEADO</span></td></tr>
+    <tr><td>Request Smuggling</td><td>500</td><td>—</td><td><span class="tag to">PARCIAL</span></td></tr>
+  </tbody></table>
+</section>
+
+<!-- 08 PDF -->
+<section class="sec" id="pdf">
+  <div class="se">// 08</div>
+  <h2 class="sh">PDF Redesenhado v3.0</h2>
+  <p class="sl">O gerador de relatório PDF foi completamente reescrito em <code style="font-family:var(--mono);color:var(--o)">reports/generator.py</code> usando ReportLab.</p>
+  <div class="g2">
+    <div class="card cr">
+      <div class="ctit">📄 Capa Profissional</div>
+      <div class="cd">Header dark com hexágono decorativo e nome RedShield. Score de risco com cor dinâmica (CRÍTICO/ALTO/MÉDIO/BAIXO). Tabela de metadados (alvo, data, duração, classificação). Strip de stats da threat intel (100 CVEs, 30 WAFs, 30 bypass, OWASP).</div>
+    </div>
+    <div class="card co2">
+      <div class="ctit">🔍 Achados com Faixas Coloridas</div>
+      <div class="cd">Cada finding tem badge de severidade colorido (CRÍTICO/ALTO/MÉDIO/BAIXO), linha superior colorida por gravidade, CVSS score destacado, descrição e remediação em verde. Ordenados por severidade decrescente.</div>
+    </div>
+    <div class="card cb">
+      <div class="ctit">🛡 Tabela WAF Aprimorada</div>
+      <div class="cd">Badge de WAF detectado com cor dinâmica. Barra de estatísticas com contadores de BYPASS / BLOQUEADO / NOT_FOUND / REDIRECT / PARCIAL. Nota explicativa sobre política anti-falso-positivo. Tabela com 5 colunas.</div>
+    </div>
+    <div class="card cg">
+      <div class="ctit">📐 Layout Profissional</div>
+      <div class="cd">Numeração de páginas (Página N) no rodapé de cada página. Header accent line vermelha nas páginas internas. Disclaimer legal completo no final. Separação clara em 4 seções: Capa, Findings, WAF/OWASP/Headers, Red/Blue Team.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 09 HEADERS -->
+<section class="sec" id="headers">
+  <div class="se">// 09</div>
+  <h2 class="sh">Security Headers OWASP</h2>
+  <p class="sl">8 headers verificados e injetados automaticamente via middleware Django em todas as respostas.</p>
+  <table class="T"><thead><tr><th>Header</th><th>Valor recomendado</th><th>Sev.</th><th>Função</th></tr></thead><tbody>
+    <tr><td><code>Strict-Transport-Security</code></td><td><code style="font-size:10px">max-age=31536000; includeSubDomains; preload</code></td><td><span class="tag tr">HIGH</span></td><td>Força HTTPS por 1 ano. Previne downgrade attacks e MitM.</td></tr>
+    <tr><td><code>Content-Security-Policy</code></td><td><code style="font-size:10px">default-src 'self'; object-src 'none'</code></td><td><span class="tag tr">HIGH</span></td><td>Previne XSS. Define fontes permitidas de scripts e objetos.</td></tr>
+    <tr><td><code>X-Frame-Options</code></td><td><code style="font-size:10px">DENY</code></td><td><span class="tag to">MEDIUM</span></td><td>Previne Clickjacking bloqueando embedding em iframes.</td></tr>
+    <tr><td><code>X-Content-Type-Options</code></td><td><code style="font-size:10px">nosniff</code></td><td><span class="tag to">MEDIUM</span></td><td>Previne MIME sniffing. Bloqueia scripts disfarçados.</td></tr>
+    <tr><td><code>Referrer-Policy</code></td><td><code style="font-size:10px">strict-origin-when-cross-origin</code></td><td><span class="tag tb">LOW</span></td><td>Controla informações no Referer ao navegar entre origens.</td></tr>
+    <tr><td><code>Permissions-Policy</code></td><td><code style="font-size:10px">geolocation=(), microphone=(), camera=()</code></td><td><span class="tag tb">LOW</span></td><td>Restringe acesso a APIs sensíveis do navegador.</td></tr>
+    <tr><td><code>X-XSS-Protection</code></td><td><code style="font-size:10px">1; mode=block</code></td><td><span class="tag tb">LOW</span></td><td>Filtro XSS em browsers legados. Descontinuado nos modernos.</td></tr>
+    <tr><td><code>Cache-Control</code></td><td><code style="font-size:10px">no-store, no-cache, must-revalidate</code></td><td><span class="tag tb">LOW</span></td><td>Previne cache de dados confidenciais em proxies/browsers.</td></tr>
+  </tbody></table>
+</section>
+
+<!-- 10 COMO USAR -->
+<section class="sec" id="uso">
+  <div class="se">// 10</div>
+  <h2 class="sh">Como Usar</h2>
+  <p class="sl">Com a aplicação rodando em <strong>http://localhost:8000</strong>.</p>
+  <div class="ca cad"><span class="cio">🚨</span><div class="cab"><strong>OBRIGATÓRIO:</strong> SOMENTE em sistemas com autorização escrita. Testes não autorizados são crime — Lei 12.737/2012 (Brasil).</div></div>
+  <div class="steps">
+    <div class="step"><div class="sn">1</div><div class="sb2"><div class="st">Novo Scan — URL do alvo</div><div class="sd">Cole a URL completa. Ex: <code style="font-family:var(--mono);font-size:12px">https://meusite.com.br</code>. Clique em <strong>[ ATTACK ]</strong>.</div></div></div>
+    <div class="step"><div class="sn">2</div><div class="sb2"><div class="st">Terminal ao Vivo</div><div class="sd">DNS → TLS → Fingerprint → WAF Detection → 30 Bypass Techniques → 100 CVE Matching → OWASP Top 10. Tipicamente 5–30 segundos.</div></div></div>
+    <div class="step"><div class="sn">3</div><div class="sb2"><div class="st">Aba WAF Analysis</div><div class="sd">Qual dos 30 WAFs foi detectado. Resultado de cada uma das 30 técnicas: BYPASS / BLOQUEADO / NOT_FOUND / REDIRECT / PARCIAL. <strong>Sem falso positivo.</strong></div></div></div>
+    <div class="step"><div class="sn">4</div><div class="sb2"><div class="st">Aba Relatório — Download PDF</div><div class="sd">PDF profissional redesenhado v3.0 com capa, score, findings por severidade, análise WAF, OWASP Top 10, security headers e Red/Blue Team.</div></div></div>
+  </div>
+</section>
+
+<!-- 11 API -->
+<section class="sec" id="api">
+  <div class="se">// 11</div>
+  <h2 class="sh">API REST</h2>
+  <table class="T"><thead><tr><th>Método</th><th>Endpoint</th><th>Descrição</th></tr></thead><tbody>
+    <tr><td><span class="tag tg2">POST</span></td><td><code>/api/scans/</code></td><td>Inicia scan. Body: <code>{"url":"https://alvo.com"}</code></td></tr>
+    <tr><td><span class="tag tb">GET</span></td><td><code>/api/scans/list/</code></td><td>Lista todos os scans</td></tr>
+    <tr><td><span class="tag tb">GET</span></td><td><code>/api/scans/{id}/</code></td><td>Status + logs em tempo real</td></tr>
+    <tr><td><span class="tag tb">GET</span></td><td><code>/api/scans/{id}/report/</code></td><td>JSON completo (status=done)</td></tr>
+    <tr><td><span class="tag tb">GET</span></td><td><code>/api/scans/{id}/pdf/</code></td><td>Download do relatório PDF</td></tr>
+    <tr><td><span class="tag tb">GET</span></td><td><code>/health/</code></td><td>Health check Docker</td></tr>
+  </tbody></table>
+  <div class="cw"><div class="cl">Exemplos curl</div><div class="code"><pre><span class="cm">curl -X POST http://localhost:8000/api/scans/ \
+     -H "Content-Type: application/json" \
+     -d '{"url": "https://alvo.com"}'</span>
+
+<span class="cc"># Baixar PDF quando status=done</span>
+<span class="cm">curl -o relatorio.pdf http://localhost:8000/api/scans/{id}/pdf/</span></pre></div><button class="cpb" onclick="cp(this)">COPY</button></div>
+</section>
+
+<!-- 12 LEGAL -->
+<section class="sec" id="legal">
+  <div class="se">// 12</div>
+  <h2 class="sh">Aviso Legal e Ética</h2>
+  <div class="ca cad"><span class="cio">🚨</span><div class="cab">
+    <strong>AVISO LEGAL OBRIGATÓRIO — LEIA ANTES DE USAR</strong><br><br>
+    O RedShield PTaaS é destinado <strong>exclusivamente</strong> a profissionais com autorização prévia e explícita do proprietário do sistema.<br><br>
+    <strong>Brasil:</strong> Lei 12.737/2012 (Lei Carolina Dieckmann) — pena de 3 meses a 1 ano. Lei 12.965/2014 (Marco Civil). CP art. 154-A.<br>
+    <strong>Internacional:</strong> CFAA (EUA), Computer Misuse Act (UK), NIS2 Directive (EU).<br><br>
+    O uso implica aceitação total destes termos.
+  </div></div>
+  <div class="h3">Usos Permitidos</div>
+  <div class="chks">
+    <div class="chk"><div class="chkb done">✓</div><strong>Bug Bounty Programs:</strong> HackerOne, Bugcrowd ou Responsible Disclosure com programa ativo.</div>
+    <div class="chk"><div class="chkb done">✓</div><strong>Pentests Contratados:</strong> Com contrato assinado, escopo definido e janela documentada.</div>
+    <div class="chk"><div class="chkb done">✓</div><strong>Seus próprios sistemas:</strong> Infraestrutura que você possui e opera legalmente.</div>
+    <div class="chk"><div class="chkb done">✓</div><strong>Laboratórios:</strong> CTFs, HackTheBox, TryHackMe, DVWA, Metasploitable.</div>
+    <div class="chk"><div class="chkb done">✓</div><strong>Educação:</strong> Ambientes dedicados e isolados da internet.</div>
+  </div>
+</section>
+
+</div><!-- /W -->
+
+<footer>
+  <div class="W">
+    <div class="fi">
+      <div>
+        <div class="fl">REDSHIELD PTaaS</div>
+        <div class="fm">MANUAL v3.0 — DJANGO 4.2 + DOCKER<br>100 CVEs (2020-2026) · 30 WAFs · 30 BYPASS · ZERO FALSE POSITIVES<br>PDF REDESENHADO · ANTI-FALSO-POSITIVO · OWASP TOP 10</div>
+      </div>
+      <div class="fw">⚠ USE SOMENTE EM SISTEMAS COM AUTORIZAÇÃO EXPLÍCITA.<br>TESTES NÃO AUTORIZADOS VIOLAM A LEI 12.737/2012 (BR)<br>E LEGISLAÇÃO INTERNACIONAL EQUIVALENTE.</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+window.addEventListener('scroll',()=>{
+  const d=document.documentElement;
+  document.getElementById('PG').style.width=(d.scrollTop/(d.scrollHeight-d.clientHeight)*100)+'%';
+});
+function cp(btn){
+  const pre=btn.parentElement.querySelector('pre');
+  if(!pre)return;
+  navigator.clipboard.writeText(pre.innerText).then(()=>{
+    const o=btn.textContent;btn.textContent='COPIADO!';setTimeout(()=>btn.textContent=o,2000);
+  });
+}
+document.querySelectorAll('a[href^="#"]').forEach(a=>{
+  a.addEventListener('click',e=>{
+    const el=document.getElementById(a.getAttribute('href').slice(1));
+    if(el){e.preventDefault();el.scrollIntoView({behavior:'smooth'});}
+  });
+});
+function filterCVEs(q){
+  q=q.toLowerCase();
+  const rows=[...document.querySelectorAll('#cvt tbody tr')];
+  rows.forEach(r=>{if(!r.classList.contains('YH'))r.style.display=r.textContent.toLowerCase().includes(q)?'':'none';});
+  rows.forEach((r,i)=>{
+    if(!r.classList.contains('YH'))return;
+    let vis=false;
+    for(let j=i+1;j<rows.length;j++){if(rows[j].classList.contains('YH'))break;if(rows[j].style.display!=='none'){vis=true;break;}}
+    r.style.display=vis?'':'none';
+  });
+}
+</script>
+</body>
+</html>

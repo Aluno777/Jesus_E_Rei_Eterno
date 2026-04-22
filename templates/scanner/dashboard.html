@@ -1,0 +1,2000 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RedShield PTaaS — Pentest as a Service</title>
+{% load static %}
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --red:#E24B4A;--red2:#A32D2D;--red-bg:#1a0505;
+  --orange:#EF9F27;--orange2:#854F0B;
+  --blue:#378ADD;--blue2:#185FA5;
+  --green:#27c93f;--green2:#3B6D11;
+  --teal:#1D9E75;
+  --dark:#08090c;--dark2:#0d1117;--dark3:#161b22;--dark4:#21262d;
+  --border:rgba(226,75,74,0.15);--border2:rgba(226,75,74,0.3);
+  --text:#e6edf3;--text2:#8b949e;--text3:#484f58;
+  --mono:'Share Tech Mono',monospace;
+  --sans:'Rajdhani','Share Tech Mono',sans-serif;
+  --glow:0 0 20px rgba(226,75,74,0.2);
+}
+html,body{height:100%;background:var(--dark);color:var(--text);font-family:var(--sans)}
+body::before{
+  content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(226,75,74,0.02) 2px,rgba(226,75,74,0.02) 4px);
+  pointer-events:none;z-index:0;
+}
+
+/* LAYOUT */
+.app{display:grid;grid-template-rows:60px 1fr;grid-template-columns:240px 1fr;height:100vh;position:relative;z-index:1}
+
+/* TOPBAR */
+.topbar{
+  grid-column:1/-1;
+  background:var(--dark2);border-bottom:1px solid var(--border2);
+  display:flex;align-items:center;padding:0 24px;gap:16px;
+  position:relative;
+}
+.topbar::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:1px;background:linear-gradient(90deg,var(--red),transparent)}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-mark{width:36px;height:36px;background:var(--red);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);display:grid;place-items:center}
+.logo-mark svg{width:18px;height:18px;fill:white}
+.logo-text{font-family:var(--sans);font-size:18px;font-weight:700;color:white;letter-spacing:2px;text-transform:uppercase}
+.logo-ver{font-family:var(--mono);font-size:9px;color:var(--red);background:rgba(226,75,74,0.1);border:1px solid var(--border2);padding:2px 6px;border-radius:2px;letter-spacing:1px}
+.topbar-center{margin:0 auto;font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:2px}
+.topbar-right{display:flex;align-items:center;gap:14px}
+.sys-status{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;color:var(--green);letter-spacing:1px}
+.pulse{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;box-shadow:0 0 6px var(--green)}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)}}
+.warn-tag{font-family:var(--mono);font-size:9px;color:var(--orange);background:rgba(239,159,39,0.08);border:1px solid rgba(239,159,39,0.25);padding:4px 10px;border-radius:2px;letter-spacing:0.5px}
+
+/* SIDEBAR */
+.sidebar{
+  grid-row:2;background:var(--dark2);border-right:1px solid var(--border);
+  padding:20px 0;display:flex;flex-direction:column;gap:1px;overflow-y:auto;
+  position:relative;
+}
+.sidebar::after{content:'';position:absolute;top:0;right:0;bottom:0;width:1px;background:linear-gradient(180deg,var(--red),transparent)}
+.nav-section{font-family:var(--mono);font-size:9px;color:var(--red);padding:14px 18px 6px;letter-spacing:3px;text-transform:uppercase}
+.nav-item{
+  display:flex;align-items:center;gap:10px;padding:9px 18px;
+  font-family:var(--mono);font-size:12px;color:var(--text2);letter-spacing:0.5px;
+  cursor:pointer;border-left:2px solid transparent;transition:all 0.15s;
+  user-select:none;position:relative;
+}
+.nav-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:0;background:rgba(226,75,74,0.05);transition:width 0.2s}
+.nav-item:hover{color:var(--text);border-left-color:rgba(226,75,74,0.4)}
+.nav-item:hover::before{width:100%}
+.nav-item.active{color:var(--red);border-left-color:var(--red);background:rgba(226,75,74,0.06)}
+.nav-item.active::before{width:100%}
+.nav-icon{font-size:12px;width:16px;text-align:center;opacity:0.8}
+.nav-badge{margin-left:auto;font-size:9px;background:var(--red);color:white;padding:1px 6px;border-radius:2px;display:none}
+.nav-badge.show{display:block;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.6}}
+
+/* MAIN */
+.main{grid-row:2;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:18px}
+
+/* PANELS */
+.panel{display:none;flex-direction:column;gap:18px}
+.panel.active{display:flex}
+
+/* CARDS */
+.card{background:var(--dark2);border:1px solid var(--border);position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,var(--red),transparent,var(--red))}
+.card-head{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.card-title{font-family:var(--mono);font-size:12px;font-weight:400;color:var(--red);letter-spacing:1px;text-transform:uppercase}
+.card-sub{font-family:var(--mono);font-size:9px;color:var(--text3);margin-left:auto;letter-spacing:1px}
+.card-body{padding:18px}
+
+/* SCAN FORM */
+.scan-form{display:flex;gap:10px;margin-bottom:14px}
+.url-input{
+  flex:1;padding:10px 14px;font-family:var(--mono);font-size:13px;
+  background:var(--dark3);border:1px solid var(--border2);color:var(--text);
+  outline:none;transition:all 0.2s;letter-spacing:0.5px;
+}
+.url-input:focus{border-color:var(--red);box-shadow:var(--glow)}
+.url-input::placeholder{color:var(--text3)}
+.btn{padding:10px 20px;font-family:var(--mono);font-size:12px;font-weight:400;border:none;cursor:pointer;transition:all 0.15s;letter-spacing:1px;text-transform:uppercase;white-space:nowrap}
+.btn-attack{background:var(--red);color:white;position:relative;overflow:hidden}
+.btn-attack::after{content:'';position:absolute;inset:0;background:linear-gradient(45deg,transparent 30%,rgba(255,255,255,0.1) 50%,transparent 70%);transform:translateX(-100%);transition:transform 0.3s}
+.btn-attack:hover::after{transform:translateX(100%)}
+.btn-attack:hover{background:#c43a39;box-shadow:var(--glow)}
+.btn-attack:disabled{opacity:0.4;cursor:not-allowed}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border);padding:8px 14px;font-size:11px}
+.btn-ghost:hover{border-color:var(--red);color:var(--red)}
+
+/* OPTS */
+.scan-opts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.opt{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--dark3);border:1px solid var(--border);cursor:pointer;transition:all 0.15s}
+.opt.on{border-color:var(--red);background:rgba(226,75,74,0.05)}
+.opt-cb{width:12px;height:12px;border:1px solid var(--border2);background:transparent;display:grid;place-items:center;flex-shrink:0;transition:all 0.15s}
+.opt.on .opt-cb{background:var(--red);border-color:var(--red)}
+.opt-cb::after{content:'✓';font-size:9px;color:white;display:none}
+.opt.on .opt-cb::after{display:block}
+.opt-lbl{font-family:var(--mono);font-size:10px;color:var(--text2);letter-spacing:0.5px}
+.opt.on .opt-lbl{color:var(--red)}
+
+/* TERMINAL */
+.terminal{background:#050709;border:1px solid var(--border);font-family:var(--mono);font-size:12px;line-height:1.9;color:var(--text2);min-height:200px;max-height:340px;overflow-y:auto;position:relative}
+.term-bar{display:flex;align-items:center;gap:6px;padding:9px 14px;border-bottom:1px solid var(--border);background:#040608}
+.td{width:10px;height:10px;border-radius:50%}
+.td-r{background:#ff5f56}.td-y{background:#ffbd2e}.td-g{background:#27c93f}
+.term-title{font-size:10px;color:var(--text3);margin:0 auto;letter-spacing:2px}
+.term-body{padding:12px 16px}
+.tl{display:flex;gap:8px;word-break:break-all}
+.tp{color:var(--red)}.tc{color:var(--text)}.tok{color:#27c93f}.twarn{color:#ffbd2e}.terr{color:#ff5f56}.tinfo{color:#58a6ff}.tmut{color:var(--text3)}
+.cursor{display:inline-block;width:8px;height:13px;background:var(--red);animation:blink2 1s step-end infinite;vertical-align:middle;margin-left:2px}
+@keyframes blink2{0%,100%{opacity:1}50%{opacity:0}}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.stat{background:var(--dark2);border:1px solid var(--border);padding:16px;text-align:center;position:relative;overflow:hidden}
+.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.stat.crit::before{background:var(--red)}
+.stat.high::before{background:var(--orange)}
+.stat.med::before{background:var(--blue)}
+.stat.low::before{background:var(--teal)}
+.stat-n{font-family:var(--mono);font-size:30px;font-weight:400}
+.stat-l{font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:3px;letter-spacing:2px}
+.n-c{color:var(--red)}.n-h{color:var(--orange)}.n-m{color:var(--blue)}.n-l{color:var(--teal)}
+
+/* FINDINGS */
+.finding{border:1px solid var(--border);margin-bottom:6px;overflow:hidden;transition:border-color 0.15s}
+.finding:hover{border-color:var(--border2)}
+.finding-head{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;background:var(--dark3)}
+.sev{font-family:var(--mono);font-size:9px;font-weight:400;padding:2px 8px;letter-spacing:1px}
+.s-CRITICAL{background:var(--red-bg);color:var(--red);border:1px solid rgba(226,75,74,0.3)}
+.s-HIGH{background:rgba(239,159,39,0.1);color:var(--orange);border:1px solid rgba(239,159,39,0.3)}
+.s-MEDIUM{background:rgba(55,138,221,0.1);color:var(--blue);border:1px solid rgba(55,138,221,0.3)}
+.s-LOW{background:rgba(29,158,117,0.1);color:var(--teal);border:1px solid rgba(29,158,117,0.3)}
+.s-INFO{background:var(--dark4);color:var(--text3);border:1px solid var(--border)}
+.f-type{font-family:var(--mono);font-size:9px;color:var(--text3);background:var(--dark);padding:2px 6px;letter-spacing:1px}
+.f-title{font-family:var(--mono);font-size:12px;color:var(--text);flex:1;letter-spacing:0.3px}
+.f-cvss{font-family:var(--mono);font-size:10px;color:var(--text3)}
+.f-body{display:none;padding:12px 14px;background:var(--dark2);border-top:1px solid var(--border)}
+.f-body.open{display:block}
+.f-row{font-family:var(--mono);font-size:11px;color:var(--text2);margin-bottom:6px;line-height:1.7}
+.f-row strong{color:var(--red)}
+
+/* TABLE base */
+.rs-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px}
+.rs-table th{text-align:left;font-size:9px;color:var(--red);padding:7px 10px;border-bottom:1px solid var(--border2);letter-spacing:2px;text-transform:uppercase}
+.rs-table td{padding:7px 10px;border-bottom:1px solid var(--border);color:var(--text2)}
+.rs-table tr:hover td{background:rgba(226,75,74,0.03)}
+.r-BYPASS{color:var(--red);font-weight:400}.r-BLOQUEADO{color:var(--green)}.r-PARCIAL{color:var(--orange)}.r-ERROR{color:var(--text3)}
+.owasp-VULN{color:var(--red)}.owasp-PASS{color:var(--green)}.owasp-INFO{color:var(--blue)}
+.hdr-ok{color:var(--green)}.hdr-no{color:var(--red)}
+
+/* RISK */
+.risk-card{display:flex;align-items:center;gap:20px;padding:20px;background:var(--dark2);border:1px solid var(--border)}
+.risk-card::before{content:'';position:absolute;inset:0;pointer-events:none}
+.gauge-svg{width:100px;height:100px;flex-shrink:0}
+.g-score{font-family:var(--mono);font-size:38px;font-weight:400;color:var(--red)}
+.g-max{font-family:var(--mono);font-size:16px;color:var(--text3)}
+.g-lbl{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:2px;margin-top:2px}
+.g-verdict{font-family:var(--mono);font-size:11px;padding:4px 12px;display:inline-block;margin-top:8px;letter-spacing:2px;text-transform:uppercase}
+.g-verdict.crit{background:rgba(226,75,74,0.1);color:var(--red);border:1px solid rgba(226,75,74,0.3)}
+.g-verdict.high{background:rgba(239,159,39,0.1);color:var(--orange);border:1px solid rgba(239,159,39,0.3)}
+.g-verdict.med{background:rgba(55,138,221,0.1);color:var(--blue);border:1px solid rgba(55,138,221,0.3)}
+.g-verdict.low{background:rgba(29,158,117,0.1);color:var(--teal);border:1px solid rgba(29,158,117,0.3)}
+
+/* TEAMS */
+.team-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.red-card{background:#08040404;border:1px solid rgba(226,75,74,0.25)}
+.blue-card{background:#04080c;border:1px solid rgba(55,138,221,0.25)}
+.team-hd{padding:12px 16px;border-bottom-width:1px;border-bottom-style:solid;display:flex;align-items:center;gap:10px}
+.red-card .team-hd{border-bottom-color:rgba(226,75,74,0.2)}
+.blue-card .team-hd{border-bottom-color:rgba(55,138,221,0.2)}
+.team-name-r{font-family:var(--mono);font-size:13px;color:var(--red);letter-spacing:2px}
+.team-name-b{font-family:var(--mono);font-size:13px;color:var(--blue);letter-spacing:2px}
+.team-pct-r{font-family:var(--mono);font-size:20px;color:var(--red);margin-left:auto}
+.team-pct-b{font-family:var(--mono);font-size:20px;color:var(--blue);margin-left:auto}
+.team-acts{padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+.tact{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11px;color:var(--text2)}
+.adot{width:6px;height:6px;flex-shrink:0}
+.a-done{background:var(--green);box-shadow:0 0 4px var(--green)}
+.a-active{background:var(--orange);animation:pulse 1s infinite;box-shadow:0 0 4px var(--orange)}
+.a-pending{background:var(--text3)}
+
+.score-bar{background:var(--dark2);border:1px solid var(--border);padding:16px 20px}
+.sb-labels{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;margin-bottom:8px;letter-spacing:1px}
+.sb-track{height:8px;background:var(--dark4);position:relative;overflow:hidden}
+.sb-red{position:absolute;left:0;height:100%;background:var(--red);transition:width 1.2s ease;box-shadow:2px 0 8px rgba(226,75,74,0.4)}
+.sb-blue{position:absolute;right:0;height:100%;background:var(--blue);transition:width 1.2s ease;box-shadow:-2px 0 8px rgba(55,138,221,0.4)}
+
+/* TLS */
+.tls-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.tls-item{background:var(--dark3);border:1px solid var(--border);padding:10px 14px}
+.tls-lbl{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:2px;margin-bottom:4px}
+.tls-val{font-family:var(--mono);font-size:12px;color:var(--text)}
+
+/* TECH TAGS */
+.tech-tags{display:flex;flex-wrap:wrap;gap:6px}
+.ttag{font-family:var(--mono);font-size:10px;padding:3px 10px;background:var(--dark3);color:var(--text2);border:1px solid var(--border);letter-spacing:0.5px}
+
+/* HISTORY */
+.hist-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px}
+.hist-table th{text-align:left;font-size:9px;color:var(--red);padding:8px 12px;border-bottom:1px solid var(--border2);letter-spacing:2px;text-transform:uppercase}
+.hist-table td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text2)}
+.hist-table tr:hover td{background:rgba(226,75,74,0.03);cursor:pointer}
+.st-done{color:var(--green)}.st-running{color:var(--orange)}.st-error{color:var(--red)}.st-queued{color:var(--blue)}
+
+/* PROGRESS */
+.prog-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.prog-lbl{font-family:var(--mono);font-size:9px;color:var(--text3);width:100px;flex-shrink:0;letter-spacing:1px;text-transform:uppercase}
+.prog-track{flex:1;height:3px;background:var(--dark4)}
+.prog-fill{height:100%;transition:width 1s ease}
+.prog-pct{font-family:var(--mono);font-size:9px;color:var(--text3);width:30px;text-align:right}
+
+/* EMPTY */
+.empty{text-align:center;padding:40px;font-family:var(--mono);color:var(--text3);font-size:11px;letter-spacing:1px}
+.empty-icon{font-size:28px;margin-bottom:10px;opacity:0.5}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:0}
+::-webkit-scrollbar-thumb:hover{background:var(--red)}
+
+/* SCAN OVERVIEW BAR */
+.overview-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--border)}
+.ov-item{padding:12px 16px;border-right:1px solid var(--border);text-align:center}
+.ov-item:last-child{border-right:none}
+.ov-num{font-family:var(--mono);font-size:22px;color:var(--red)}
+.ov-lbl{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:2px;margin-top:2px}
+
+/* responsive */
+@media(max-width:768px){
+  .app{grid-template-columns:1fr;grid-template-rows:60px 48px 1fr}
+  .sidebar{grid-row:2;flex-direction:row;padding:0 8px;overflow-x:auto;gap:0;border-right:none;border-bottom:1px solid var(--border)}
+  .nav-section{display:none}
+  .nav-item{padding:14px 10px;white-space:nowrap;border-left:none;border-bottom:2px solid transparent}
+  .nav-item.active{border-bottom-color:var(--red);border-left:none}
+  .main{grid-row:3}
+  .scan-opts,.stats-row,.team-grid,.tls-grid{grid-template-columns:1fr 1fr}
+}
+
+/* PoC / Bug Bounty */
+.poc-empty{text-align:center;padding:40px;font-family:var(--mono);color:var(--text3);font-size:11px;letter-spacing:1px}
+.poc-vuln{border:1px solid var(--border);margin-bottom:10px;overflow:hidden;background:var(--dark2)}
+.poc-vuln-head{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--dark3);border-bottom:1px solid var(--border)}
+.poc-vuln-body{padding:16px}
+.poc-code{background:#050709;border:1px solid var(--border);font-family:var(--mono);font-size:11px;color:#7ec8e3;padding:12px 16px;overflow-x:auto;white-space:pre-wrap;word-break:break-all;margin:6px 0;line-height:1.7}
+.poc-field{margin-bottom:10px}
+.poc-field-lbl{font-family:var(--mono);font-size:9px;color:var(--red);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px}
+.poc-field-val{font-family:var(--mono);font-size:11px;color:var(--text2);line-height:1.7}
+.poc-copy-btn{font-family:var(--mono);font-size:9px;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:3px 10px;cursor:pointer;letter-spacing:1px;margin-left:auto;transition:all 0.15s}
+.poc-copy-btn:hover{border-color:var(--red);color:var(--red)}
+.poc-copy-btn.copied{border-color:var(--green);color:var(--green)}
+.poc-cvss-bar{display:flex;align-items:center;gap:10px;margin-top:6px}
+.poc-cvss-track{flex:1;height:4px;background:var(--dark4)}
+.poc-cvss-fill{height:100%}
+.poc-tag{font-family:var(--mono);font-size:9px;padding:2px 8px;letter-spacing:1px;border:1px solid;margin-right:4px}
+.poc-tag-impact{color:var(--orange);border-color:rgba(239,159,39,0.3);background:rgba(239,159,39,0.06)}
+.poc-tag-scope{color:var(--blue);border-color:rgba(55,138,221,0.3);background:rgba(55,138,221,0.06)}
+.poc-tag-auth{color:var(--teal);border-color:rgba(29,158,117,0.3);background:rgba(29,158,117,0.06)}
+.poc-summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:4px}
+.poc-summary-item{background:var(--dark3);border:1px solid var(--border);padding:14px;text-align:center}
+.poc-summary-num{font-family:var(--mono);font-size:24px;color:var(--text)}
+.poc-summary-lbl{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:2px;margin-top:3px}
+.poc-filter-bar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.poc-filter{font-family:var(--mono);font-size:10px;padding:5px 12px;background:var(--dark3);border:1px solid var(--border);color:var(--text2);cursor:pointer;letter-spacing:0.5px;transition:all 0.15s}
+.poc-filter.active,.poc-filter:hover{border-color:var(--red);color:var(--red);background:rgba(226,75,74,0.05)}
+.poc-no-results{text-align:center;padding:30px;font-family:var(--mono);color:var(--text3);font-size:11px;letter-spacing:1px}
+.poc-export-btn{font-family:var(--mono);font-size:11px;background:transparent;border:1px solid var(--border2);color:var(--text2);padding:7px 14px;cursor:pointer;letter-spacing:1px;transition:all 0.15s}
+.poc-export-btn:hover{border-color:var(--orange);color:var(--orange)}
+/* Evidence Guide */
+.ev-section{margin-bottom:28px}
+.ev-section-title{font-family:var(--mono);font-size:10px;color:var(--red);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;padding-bottom:6px;border-bottom:1px solid var(--border2)}
+.ev-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.ev-card{background:var(--dark3);border:1px solid var(--border);padding:16px;transition:border-color 0.2s}
+.ev-card:hover{border-color:rgba(226,75,74,0.4)}
+.ev-card-icon{font-size:22px;margin-bottom:8px}
+.ev-card-title{font-family:var(--mono);font-size:11px;color:var(--text);margin-bottom:6px;letter-spacing:0.5px}
+.ev-card-desc{font-family:var(--mono);font-size:10px;color:var(--text2);line-height:1.7}
+.ev-steps{counter-reset:ev-step}
+.ev-step{display:flex;gap:12px;margin-bottom:12px;align-items:flex-start}
+.ev-step-num{font-family:var(--mono);font-size:10px;color:var(--red);background:rgba(226,75,74,0.1);border:1px solid rgba(226,75,74,0.3);width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:bold}
+.ev-step-content{flex:1}
+.ev-step-title{font-family:var(--mono);font-size:11px;color:var(--text);margin-bottom:3px}
+.ev-step-desc{font-family:var(--mono);font-size:10px;color:var(--text2);line-height:1.6}
+.ev-tool-bar{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.ev-tool{font-family:var(--mono);font-size:9px;padding:4px 10px;border:1px solid var(--border2);color:var(--text3);letter-spacing:1px}
+.ev-tool.recommended{border-color:rgba(226,75,74,0.4);color:var(--red);background:rgba(226,75,74,0.06)}
+.ev-code{background:#050709;border:1px solid var(--border);font-family:var(--mono);font-size:10px;color:#7ec8e3;padding:10px 14px;margin:8px 0;white-space:pre-wrap;word-break:break-all;line-height:1.7}
+.ev-alert{background:rgba(226,75,74,0.06);border:1px solid rgba(226,75,74,0.25);padding:10px 14px;margin:10px 0;font-family:var(--mono);font-size:10px;color:var(--orange);line-height:1.6}
+.ev-alert-green{background:rgba(29,158,117,0.06);border:1px solid rgba(29,158,117,0.25);color:var(--teal)}
+.ev-checklist{list-style:none;padding:0;margin:0}
+.ev-checklist li{font-family:var(--mono);font-size:10px;color:var(--text2);padding:5px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:8px;line-height:1.5}
+.ev-checklist li::before{content:'□';color:var(--red);flex-shrink:0}
+.ev-tab-bar{display:flex;gap:0;margin-bottom:16px;border-bottom:1px solid var(--border)}
+.ev-tab{font-family:var(--mono);font-size:10px;padding:8px 16px;cursor:pointer;color:var(--text3);letter-spacing:1px;border-bottom:2px solid transparent;transition:all 0.15s;margin-bottom:-1px}
+.ev-tab.active,.ev-tab:hover{color:var(--red);border-bottom-color:var(--red)}
+.ev-panel{display:none}.ev-panel.active{display:block}
+.ev-vuln-row{display:flex;gap:10px;align-items:stretch;margin-bottom:14px;flex-wrap:wrap}
+.ev-vuln-col{flex:1;min-width:240px;background:var(--dark3);border:1px solid var(--border);padding:14px}
+.ev-col-title{font-family:var(--mono);font-size:9px;color:var(--red);letter-spacing:2px;margin-bottom:10px}
+.ev-shortcut{display:inline-flex;gap:4px;align-items:center}
+.ev-key{font-family:var(--mono);font-size:9px;background:var(--dark4);border:1px solid var(--border2);color:var(--text);padding:2px 7px;border-radius:2px}
+
+/* ── Evidence Upload Slots ─────────────────────────────────── */
+.ev-upload-slot{border:1.5px dashed rgba(226,75,74,0.35);border-radius:4px;padding:10px 12px;margin-top:8px;cursor:pointer;transition:border-color .2s,background .2s;position:relative}
+.ev-upload-slot:hover,.ev-upload-slot.drag-over{border-color:var(--red);background:rgba(226,75,74,0.07)}
+.ev-upload-slot input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.ev-upload-slot .slot-meta{display:flex;gap:10px;align-items:center}
+.ev-upload-slot .slot-num{font-family:var(--mono);font-size:10px;color:var(--red);background:rgba(226,75,74,0.1);border:1px solid rgba(226,75,74,0.3);min-width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-weight:bold;flex-shrink:0}
+.ev-upload-slot .slot-info{flex:1}
+.ev-upload-slot .slot-label{font-family:var(--mono);font-size:10px;color:var(--text);margin-bottom:2px;letter-spacing:.5px}
+.ev-upload-slot .slot-desc{font-family:var(--mono);font-size:10px;color:var(--text2);line-height:1.6}
+.ev-upload-slot .slot-hint{font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:4px}
+.ev-upload-slot .slot-status{font-family:var(--mono);font-size:9px;padding:2px 7px;border-radius:2px;white-space:nowrap;flex-shrink:0}
+.slot-status.empty{color:var(--text3);border:1px solid var(--border)}
+.slot-status.filled{color:var(--green);border:1px solid var(--green);background:rgba(80,200,120,0.08)}
+.ev-thumb-wrap{margin-top:8px;position:relative;display:inline-block}
+.ev-thumb-wrap img{max-width:100%;max-height:180px;border:1px solid var(--border);border-radius:3px;display:block;object-fit:contain;background:#000}
+.ev-thumb-remove{position:absolute;top:4px;right:4px;background:rgba(226,75,74,0.85);color:#fff;border:none;border-radius:2px;font-size:10px;padding:2px 6px;cursor:pointer;font-family:var(--mono)}
+.ev-thumb-remove:hover{background:var(--red)}
+.ev-paste-hint{font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:4px;text-align:center}
+
+/* ── Modal Política de Uso ─────────────────────────────────── */
+.tos-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.tos-box{background:var(--surface);border:1px solid rgba(226,75,74,0.5);border-radius:6px;max-width:680px;width:90%;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 0 40px rgba(226,75,74,0.2)}
+.tos-head{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+.tos-head-icon{font-size:22px}
+.tos-title{font-family:var(--mono);font-size:13px;color:var(--red);letter-spacing:1px}
+.tos-body{padding:20px 24px;overflow-y:auto;flex:1;font-family:var(--mono);font-size:10.5px;color:var(--text2);line-height:1.8}
+.tos-body h3{color:var(--text);font-size:11px;margin:16px 0 6px;letter-spacing:.5px}
+.tos-body h3:first-child{margin-top:0}
+.tos-body p{margin-bottom:8px}
+.tos-body .tos-law{background:rgba(226,75,74,0.07);border-left:2px solid var(--red);padding:8px 12px;margin:10px 0;border-radius:0 3px 3px 0}
+.tos-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:12px}
+.tos-check-row{display:flex;align-items:flex-start;gap:10px;cursor:pointer}
+.tos-checkbox{width:16px;height:16px;border:1.5px solid var(--red);border-radius:2px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:background .15s}
+.tos-checkbox.checked{background:var(--red)}
+.tos-checkbox.checked::after{content:'✓';color:#fff;font-size:11px;font-family:var(--mono)}
+.tos-check-label{font-family:var(--mono);font-size:10px;color:var(--text2);line-height:1.6;user-select:none}
+.tos-accept-btn{font-family:var(--mono);font-size:11px;padding:10px 0;background:var(--red);color:#fff;border:none;border-radius:3px;cursor:pointer;letter-spacing:1px;transition:background .15s;width:100%}
+.tos-accept-btn:hover:not(:disabled){background:#c43a39}
+.tos-accept-btn:disabled{opacity:.35;cursor:not-allowed}
+.tos-stamp{font-family:var(--mono);font-size:9px;color:var(--text3);text-align:center}
+
+
+/* ── Modo Silencioso ───────────────────────────────────────── */
+.btn-silent{background:transparent;color:var(--text3);border:1px solid var(--border);font-family:var(--mono);font-size:10px;padding:0 14px;border-radius:2px;cursor:pointer;transition:all .2s;white-space:nowrap;height:38px}
+.btn-silent:hover{color:var(--text);border-color:var(--text3)}
+.btn-silent.active{color:#4ade80;border-color:#4ade80;background:rgba(74,222,128,0.08)}
+.btn-silent.active:hover{background:rgba(74,222,128,0.15)}
+.silent-badge{display:inline-block;width:6px;height:6px;border-radius:50%;background:#4ade80;margin-right:5px;animation:pulse-green 2s infinite}
+@keyframes pulse-green{0%,100%{opacity:1}50%{opacity:.3}}
+.mode-indicator{font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:6px;min-height:14px;transition:color .3s}
+.mode-indicator.silent{color:#4ade80}
+</style>
+</head>
+<body>
+
+<!-- MODAL POLÍTICA DE USO AUTORIZADO -->
+<div class="tos-overlay" id="tos-overlay">
+  <div class="tos-box">
+    <div class="tos-head">
+      <span class="tos-head-icon">⚖️</span>
+      <span class="tos-title">POLÍTICA DE USO AUTORIZADO — REDSHIELD PTaaS</span>
+    </div>
+    <div class="tos-body">
+      <h3>1. DECLARAÇÃO DE USO AUTORIZADO</h3>
+      <p>O RedShield PTaaS é uma ferramenta de pentest automatizado destinada <strong>exclusivamente</strong> a testes em sistemas nos quais o usuário possui autorização explícita do proprietário.</p>
+      <p>Ao utilizar esta ferramenta, você declara sob sua total responsabilidade que:</p>
+      <p>• É o proprietário do sistema alvo, <strong>ou</strong><br>
+         • Possui autorização formal e documentada do proprietário para realizar testes de segurança.</p>
+
+      <h3>2. LEGISLAÇÃO APLICÁVEL</h3>
+      <div class="tos-law">
+        <strong>Art. 154-A do Código Penal Brasileiro</strong> (incluído pela Lei 12.737/2012 — Lei Carolina Dieckmann):<br>
+        <em>"Invadir dispositivo informático alheio, conectado ou não à rede de computadores, mediante violação indevida de mecanismo de segurança e com o fim de obter, adulterar ou destruir dados ou informações sem autorização expressa ou tácita do titular..."</em><br>
+        Pena: detenção de 3 meses a 1 ano, e multa.
+      </div>
+      <div class="tos-law">
+        <strong>Marco Civil da Internet — Lei 12.965/2014, Art. 12</strong>:<br>
+        Violações ao acesso não autorizado sujeitam o infrator a sanções administrativas, cíveis e criminais.
+      </div>
+
+      <h3>3. RESPONSABILIDADE DO USUÁRIO</h3>
+      <p>O uso desta ferramenta sem autorização prévia do proprietário do sistema alvo constitui <strong>crime</strong>. A responsabilidade pelo uso indevido é <strong>exclusiva do usuário</strong>.</p>
+      <p>Os desenvolvedores do RedShield PTaaS não se responsabilizam por qualquer uso da ferramenta em sistemas sem autorização expressa.</p>
+
+      <h3>4. REGISTRO DE ACEITE</h3>
+      <p>Seu aceite será registrado com data, hora e endereço IP para fins de auditoria e conformidade legal.</p>
+    </div>
+    <div class="tos-footer">
+      <label class="tos-check-row" onclick="toggleTosCheck()">
+        <div class="tos-checkbox" id="tos-cb"></div>
+        <span class="tos-check-label">
+          Declaro que sou o proprietário do sistema alvo <strong>ou</strong> possuo autorização formal do proprietário para realizar testes de segurança. Estou ciente que o uso não autorizado configura crime conforme o Art. 154-A do Código Penal Brasileiro.
+        </span>
+      </label>
+      <button class="tos-accept-btn" id="tos-accept-btn" disabled onclick="acceptTos()">
+        [ ACEITAR E CONTINUAR ]
+      </button>
+      <div class="tos-stamp" id="tos-stamp"></div>
+    </div>
+  </div>
+</div>
+
+<div class="app">
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <a class="logo" href="/">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.5 3.8 10.7 9 12 5.2-1.3 9-6.5 9-12V5L12 1z"/></svg>
+    </div>
+    <span class="logo-text">RedShield</span>
+    <span class="logo-ver">PTaaS v2.5</span>
+  </a>
+  <div class="topbar-center">PENTEST AS A SERVICE // AUTHORIZED USE ONLY</div>
+  <div class="topbar-right">
+    <div class="warn-tag">⚠ USE APENAS COM AUTORIZAÇÃO</div>
+    <div class="sys-status"><div class="pulse"></div>SISTEMA ATIVO</div>
+  </div>
+</header>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="nav-section">// Módulos</div>
+  <div class="nav-item active" onclick="nav('scan',this)"><span class="nav-icon">⌖</span>Novo Scan</div>
+  <div class="nav-item" onclick="nav('findings',this)"><span class="nav-icon">⚠</span>Findings<span class="nav-badge" id="badge">0</span></div>
+  <div class="nav-item" onclick="nav('waf',this)"><span class="nav-icon">⛨</span>WAF Analysis</div>
+  <div class="nav-item" onclick="nav('owasp',this)"><span class="nav-icon">☑</span>OWASP Top 10</div>
+  <div class="nav-item" onclick="nav('headers',this)"><span class="nav-icon">⊞</span>HTTP Headers</div>
+  <div class="nav-item" onclick="nav('teams',this)"><span class="nav-icon">⚔</span>Red/Blue Team</div>
+  <div class="nav-item" onclick="nav('report',this)"><span class="nav-icon">◈</span>Relatório</div>
+  <div class="nav-item" onclick="nav('poc',this)"><span class="nav-icon">🐛</span>PoC / Bug Bounty<span class="nav-badge" id="badge-poc">0</span></div>
+  <div class="nav-item" onclick="nav('evidence',this)"><span class="nav-icon">📸</span>Provas Bug Bounty</div>
+  <div class="nav-section" style="margin-top:auto">// Histórico</div>
+  <div class="nav-item" onclick="nav('history',this)"><span class="nav-icon">⏱</span>Histórico</div>
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+
+<!-- SCAN -->
+<div class="panel active" id="panel-scan">
+  {% if stats.total_scans > 0 %}
+  <div class="overview-bar">
+    <div class="ov-item"><div class="ov-num">{{ stats.total_scans }}</div><div class="ov-lbl">Scans</div></div>
+    <div class="ov-item"><div class="ov-num" style="color:var(--red)">{{ stats.critical_findings }}</div><div class="ov-lbl">Críticos</div></div>
+    <div class="ov-item"><div class="ov-num" style="color:var(--orange)">{{ stats.high_findings }}</div><div class="ov-lbl">Altos</div></div>
+    <div class="ov-item"><div class="ov-num" style="color:var(--green)">{{ stats.done_scans }}</div><div class="ov-lbl">Concluídos</div></div>
+  </div>
+  {% endif %}
+  <div class="card">
+    <div class="card-head"><span class="card-title">⌖ Iniciar Pentest</span><span class="card-sub">TARGET ACQUISITION</span></div>
+    <div class="card-body">
+      <div class="scan-form">
+        <input class="url-input" id="url-in" type="text" placeholder="https://alvo.com.br" autocomplete="off"/>
+        <button class="btn btn-attack" id="btn-scan" onclick="startScan()">[ ATTACK ]</button>
+        <button class="btn-silent" id="btn-silent" onclick="toggleSilentMode()" title="Modo silencioso: usa navegador real para não ser detectado como scanner">⬤ SILENT</button>
+      </div>
+      <div class="mode-indicator" id="mode-indicator">// modo padrão — requisição HTTP direta</div>
+      <div class="scan-opts">
+        <div class="opt on" onclick="toggleOpt(this)"><div class="opt-cb"></div><span class="opt-lbl">WAF Analysis</span></div>
+        <div class="opt on" onclick="toggleOpt(this)"><div class="opt-cb"></div><span class="opt-lbl">CVE Lookup</span></div>
+        <div class="opt on" onclick="toggleOpt(this)"><div class="opt-cb"></div><span class="opt-lbl">HTTP Headers</span></div>
+        <div class="opt on" onclick="toggleOpt(this)"><div class="opt-cb"></div><span class="opt-lbl">OWASP Top 10</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="terminal" id="terminal">
+    <div class="term-bar">
+      <div class="td td-r"></div><div class="td td-y"></div><div class="td td-g"></div>
+      <span class="term-title">REDSHIELD // TERMINAL</span>
+    </div>
+    <div class="term-body" id="term-body">
+      <div class="tl"><span class="tmut">// sistema pronto — insira URL e clique em ATTACK</span></div>
+      <div class="tl"><span class="tp">redshield$</span><span class="cursor"></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- FINDINGS -->
+<div class="panel" id="panel-findings">
+  <div class="stats-row">
+    <div class="stat crit"><div class="stat-n n-c" id="s-crit">—</div><div class="stat-l">CRÍTICO</div></div>
+    <div class="stat high"><div class="stat-n n-h" id="s-high">—</div><div class="stat-l">ALTO</div></div>
+    <div class="stat med"><div class="stat-n n-m" id="s-med">—</div><div class="stat-l">MÉDIO</div></div>
+    <div class="stat low"><div class="stat-n n-l" id="s-low">—</div><div class="stat-l">BAIXO</div></div>
+  </div>
+  <div class="card">
+    <div class="card-head"><span class="card-title">⚠ Vulnerabilidades</span><span class="card-sub" id="findings-count">0 FINDINGS</span></div>
+    <div class="card-body" id="findings-list">
+      <div class="empty"><div class="empty-icon">⌖</div>AGUARDANDO SCAN</div>
+    </div>
+  </div>
+</div>
+
+<!-- WAF -->
+<div class="panel" id="panel-waf">
+  <div class="card">
+    <div class="card-head"><span class="card-title">⛨ WAF Detection</span></div>
+    <div class="card-body">
+      <div class="tls-grid">
+        <div class="tls-item"><div class="tls-lbl">FIREWALL DETECTADO</div><div class="tls-val" id="waf-name" style="color:var(--orange)">—</div></div>
+        <div class="tls-item"><div class="tls-lbl">BYPASSES EFICAZES</div><div class="tls-val" id="waf-bp-count" style="color:var(--red)">—</div></div>
+        <div class="tls-item"><div class="tls-lbl">TÉCNICAS TESTADAS</div><div class="tls-val" id="waf-total" style="color:var(--text2)">—</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head"><span class="card-title">Bypass Techniques</span></div>
+    <div class="card-body" id="waf-bypass-body">
+      <div class="empty"><div class="empty-icon">⛨</div>AGUARDANDO SCAN</div>
+    </div>
+  </div>
+</div>
+
+<!-- OWASP -->
+<div class="panel" id="panel-owasp">
+  <div class="card">
+    <div class="card-head"><span class="card-title">☑ OWASP Top 10</span><span class="card-sub">2021 EDITION</span></div>
+    <div class="card-body" id="owasp-body">
+      <div class="empty"><div class="empty-icon">☑</div>AGUARDANDO SCAN</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head"><span class="card-title">Cobertura de Testes</span></div>
+    <div class="card-body">
+      <div style="margin-top:4px">
+        <div class="prog-row"><span class="prog-lbl">SQL Inject.</span><div class="prog-track"><div class="prog-fill" style="width:95%;background:var(--red)"></div></div><span class="prog-pct">95%</span></div>
+        <div class="prog-row"><span class="prog-lbl">XSS</span><div class="prog-track"><div class="prog-fill" style="width:88%;background:var(--orange)"></div></div><span class="prog-pct">88%</span></div>
+        <div class="prog-row"><span class="prog-lbl">SSRF</span><div class="prog-track"><div class="prog-fill" style="width:72%;background:var(--blue)"></div></div><span class="prog-pct">72%</span></div>
+        <div class="prog-row"><span class="prog-lbl">IDOR</span><div class="prog-track"><div class="prog-fill" style="width:65%;background:#7F77DD"></div></div><span class="prog-pct">65%</span></div>
+        <div class="prog-row"><span class="prog-lbl">XXE</span><div class="prog-track"><div class="prog-fill" style="width:80%;background:var(--teal)"></div></div><span class="prog-pct">80%</span></div>
+        <div class="prog-row"><span class="prog-lbl">Path Trav.</span><div class="prog-track"><div class="prog-fill" style="width:90%;background:var(--orange)"></div></div><span class="prog-pct">90%</span></div>
+        <div class="prog-row"><span class="prog-lbl">SSTI</span><div class="prog-track"><div class="prog-fill" style="width:60%;background:#7F77DD"></div></div><span class="prog-pct">60%</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HEADERS -->
+<div class="panel" id="panel-headers">
+  <div class="card">
+    <div class="card-head"><span class="card-title">⊞ Security Headers</span></div>
+    <div class="card-body" id="headers-body">
+      <div class="empty"><div class="empty-icon">⊞</div>AGUARDANDO SCAN</div>
+    </div>
+  </div>
+  <div class="card" id="tls-card" style="display:none">
+    <div class="card-head"><span class="card-title">🔒 TLS/SSL Analysis</span></div>
+    <div class="card-body" id="tls-body"></div>
+  </div>
+</div>
+
+<!-- TEAMS -->
+<div class="panel" id="panel-teams">
+  <div class="team-grid">
+    <div class="red-card card">
+      <div class="team-hd"><span style="font-size:18px">🗡</span><span class="team-name-r">RED TEAM</span><span class="team-pct-r" id="red-pct">—%</span></div>
+      <div class="team-acts" id="red-acts">
+        {% for a in "123456" %}<div class="tact"><div class="adot a-pending" style="border-radius:0"></div>Aguardando scan...</div>{% endfor %}
+      </div>
+    </div>
+    <div class="blue-card card">
+      <div class="team-hd"><span style="font-size:18px">🛡</span><span class="team-name-b">BLUE TEAM</span><span class="team-pct-b" id="blue-pct">—%</span></div>
+      <div class="team-acts" id="blue-acts">
+        {% for a in "123456" %}<div class="tact"><div class="adot a-pending" style="border-radius:0"></div>Aguardando scan...</div>{% endfor %}
+      </div>
+    </div>
+  </div>
+  <div class="score-bar card">
+    <div class="sb-labels">
+      <span style="color:var(--red)">RED TEAM</span>
+      <span id="score-txt" style="color:var(--text3)">AGUARDANDO SCAN</span>
+      <span style="color:var(--blue)">BLUE TEAM</span>
+    </div>
+    <div class="sb-track">
+      <div class="sb-red" id="sb-red" style="width:0%"></div>
+      <div class="sb-blue" id="sb-blue" style="width:0%"></div>
+    </div>
+  </div>
+</div>
+
+<!-- REPORT -->
+<div class="panel" id="panel-report">
+  <div id="rep-empty" class="card"><div class="card-body"><div class="empty"><div class="empty-icon">◈</div>EXECUTE UM SCAN PARA GERAR O RELATÓRIO</div></div></div>
+  <div id="rep-content" style="display:none;flex-direction:column;gap:18px">
+    <div class="risk-card card" style="position:relative">
+      <svg class="gauge-svg" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(226,75,74,0.1)" stroke-width="10"/>
+        <circle id="g-arc" cx="50" cy="50" r="40" fill="none" stroke="var(--red)" stroke-width="10" stroke-dasharray="251" stroke-dashoffset="251" stroke-linecap="butt" transform="rotate(-90 50 50)" style="transition:stroke-dashoffset 1.5s ease"/>
+      </svg>
+      <div>
+        <div><span class="g-score" id="g-score">0.0</span><span class="g-max"> / 10</span></div>
+        <div class="g-lbl">RISK SCORE</div>
+        <div class="g-verdict" id="g-verdict">—</div>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:10px;align-items:center">
+        <button class="btn btn-ghost" id="btn-json" onclick="dlJSON()" style="display:none">⬇ JSON</button>
+        <button class="btn btn-attack" id="btn-pdf" onclick="dlPDF()" style="display:none;padding:8px 16px;font-size:11px">⬇ PDF</button>
+      </div>
+    </div>
+    <div id="rep-tech"></div>
+  </div>
+</div>
+
+
+<!-- POC / BUG BOUNTY -->
+<div class="panel" id="panel-poc">
+  <div class="card">
+    <div class="card-head">
+      <span class="card-title">🐛 PoC — Proof of Concept</span>
+      <span class="card-sub" id="poc-count-label">BUG BOUNTY READY</span>
+      <button class="poc-export-btn" id="poc-export-btn" onclick="exportPoC()" style="display:none">⬇ EXPORTAR PoC.md</button>
+    </div>
+    <div class="card-body">
+      <div id="poc-empty-state" class="poc-empty">
+        <div class="empty-icon">🐛</div>
+        EXECUTE UM SCAN PARA GERAR OS PoCs
+        <div style="margin-top:8px;font-size:10px;color:var(--text3)">Os PoCs serão gerados automaticamente com base nas vulnerabilidades encontradas</div>
+      </div>
+      <div id="poc-loaded-state" style="display:none">
+        <div class="poc-summary-grid" id="poc-summary-grid"></div>
+        <div class="poc-filter-bar" id="poc-filter-bar"></div>
+        <div id="poc-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- EVIDENCE GUIDE -->
+<div class="panel" id="panel-evidence">
+  <div class="card">
+    <div class="card-head">
+      <span class="card-title">📸 Provas — Bug Bounty</span>
+      <span class="card-sub" id="ev-count-label">EVIDÊNCIAS PRONTAS PARA SUBMISSÃO</span>
+      <button class="poc-export-btn" id="ev-zip-btn" onclick="dlEvidenceZip()" style="display:none;margin-right:8px">⬇ BAIXAR EVIDÊNCIAS (.zip)</button>
+      <button class="poc-export-btn" id="ev-export-btn" onclick="exportEvidence()" style="display:none">⬇ EXPORTAR PROVAS.md</button>
+    </div>
+    <div class="card-body">
+      <div id="ev-empty-state" class="poc-empty">
+        <div class="empty-icon">📸</div>
+        EXECUTE UM SCAN PARA GERAR AS PROVAS
+        <div style="margin-top:8px;font-size:10px;color:var(--text3)">As evidências são capturadas automaticamente durante o scan (request, response e prova de cada vulnerabilidade)</div>
+      </div>
+      <div id="ev-loaded-state" style="display:none">
+        <div class="poc-summary-grid" id="ev-summary-grid"></div>
+        <div class="poc-filter-bar" id="ev-filter-bar"></div>
+        <div id="ev-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- HISTORY -->
+<div class="panel" id="panel-history">
+  <div class="card">
+    <div class="card-head"><span class="card-title">⏱ Histórico de Scans</span><button class="btn btn-ghost" onclick="loadHistory()">↻ Atualizar</button></div>
+    <div class="card-body" id="hist-body">
+      {% if recent_scans %}
+      <table class="hist-table">
+        <thead><tr><th>ID</th><th>Alvo</th><th>Status</th><th>Score</th><th>Data</th></tr></thead>
+        <tbody>
+          {% for s in recent_scans %}
+          <tr onclick="loadScanById('{{ s.id }}')">
+            <td style="color:var(--text3)">{{ s.id|slice:":8" }}</td>
+            <td>{{ s.url|truncatechars:50 }}</td>
+            <td class="st-{{ s.status }}">{{ s.get_status_display }}</td>
+            <td>{% if s.risk_score %}{{ s.risk_score }}/10{% else %}—{% endif %}</td>
+            <td style="color:var(--text3)">{{ s.created_at|date:"d/m/Y H:i" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty"><div class="empty-icon">⏱</div>NENHUM SCAN REGISTRADO</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<script>
+{% verbatim %}
+const API = '';
+let scanId = null, report = null, pollT = null, logCount = 0;
+
+function nav(id, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  el.classList.add('active');
+  if (id === 'history') loadHistory();
+}
+
+function toggleOpt(el) { el.classList.toggle('on'); }
+
+// ─── SCAN ──────────────────────────────────────────────────────────────────
+// ── Política de Uso ──────────────────────────────────────────────────────────
+let _tosAccepted = false;
+let _tosTimestamp = null;
+
+function toggleTosCheck() {
+  const cb  = document.getElementById('tos-cb');
+  const btn = document.getElementById('tos-accept-btn');
+  cb.classList.toggle('checked');
+  btn.disabled = !cb.classList.contains('checked');
+}
+
+function acceptTos() {
+  if (!document.getElementById('tos-cb').classList.contains('checked')) return;
+  _tosAccepted  = true;
+  _tosTimestamp = new Date().toISOString();
+  // Registrar aceite com timestamp (localStorage para auditoria local)
+  try {
+    const log = JSON.parse(localStorage.getItem('tos_log') || '[]');
+    log.push({ accepted_at: _tosTimestamp, ua: navigator.userAgent });
+    localStorage.setItem('tos_log', JSON.stringify(log.slice(-50)));
+  } catch(e) {}
+  document.getElementById('tos-overlay').style.display = 'none';
+  const stamp = document.getElementById('tos-stamp');
+  if (stamp) stamp.textContent = 'Aceito em ' + new Date(_tosTimestamp).toLocaleString('pt-BR');
+}
+
+// Bloquear tecla ESC no modal
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && !_tosAccepted) e.preventDefault();
+});
+
+let _pollController = null;
+let _silentMode = false;
+
+function toggleSilentMode() {
+  _silentMode = !_silentMode;
+  const btn  = document.getElementById('btn-silent');
+  const ind  = document.getElementById('mode-indicator');
+  if (_silentMode) {
+    btn.classList.add('active');
+    btn.innerHTML = '<span class="silent-badge"></span>SILENT ON';
+    ind.className = 'mode-indicator silent';
+    ind.textContent = '// modo silencioso ativo — navegador real, comportamento humano, anti-detecção';
+  } else {
+    btn.classList.remove('active');
+    btn.innerHTML = '⬤ SILENT';
+    ind.className = 'mode-indicator';
+    ind.textContent = '// modo padrão — requisição HTTP direta';
+  }
+}
+
+async function startScan() {
+  if (!_tosAccepted) {
+    document.getElementById('tos-overlay').style.display = 'flex';
+    return;
+  }
+  const url = document.getElementById('url-in').value.trim();
+  if (!url) return alert('Insira uma URL!');
+  const btn = document.getElementById('btn-scan');
+
+  // Cancelar scan anterior se ainda estiver rodando
+  if (pollT) { clearInterval(pollT); pollT = null; }
+  if (_pollController) { _pollController.abort(); }
+  _pollController = new AbortController();
+
+  btn.disabled = true;
+  btn.textContent = _silentMode ? '[ SILENT SCAN... ]' : '[ SCANNING... ]';
+  termClear();
+  termLine('tp', `redshield$ scan ${url}${_silentMode ? ' --silent' : ''}`);
+  if (_silentMode) {
+    termLine('tmut', '// modo silencioso: iniciando navegador Chromium real...');
+    termLine('tmut', '// comportamento anti-detecção: fingerprint, cookies, JS challenges');
+  } else {
+    termLine('tmut', '// inicializando módulos de ataque...');
+  }
+  logCount = 0;
+
+  try {
+    const r = await fetch(`${API}/api/scans/`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ url, silent_mode: _silentMode }),
+      signal: _pollController.signal
+    });
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+    scanId = d.scan_id;
+    termLine('tinfo', `// scan_id: ${d.scan_id}`);
+    termLine('tinfo', `// target: ${d.target}`);
+    termLine('tinfo', `// modo: ${_silentMode ? 'SILENCIOSO (browser real)' : 'PADRÃO (HTTP direto)'}`);
+    animateTeams();
+    pollT = setInterval(poll, 2500);
+  } catch(e) {
+    termLine('terr', `// ERRO: ${e.message}`);
+    btn.disabled = false;
+    btn.textContent = '[ ATTACK ]';
+  }
+}
+
+async function poll() {
+  try {
+    const r = await fetch(`${API}/api/scans/${scanId}/`);
+    const d = await r.json();
+    const newLogs = (d.logs || []).slice(logCount);
+    logCount = (d.logs || []).length;
+    newLogs.forEach(l => {
+      const cls = l.step==='done'?'tok':l.step==='error'?'terr':l.step==='cve'||l.step==='bypass'?'twarn':'tinfo';
+      termLine(cls, `[${l.elapsed_s}s] ${l.message}`);
+    });
+    if (d.status === 'done') {
+      clearInterval(pollT);
+      termLine('tok', '// ✓ SCAN CONCLUÍDO — carregando relatório...');
+      document.getElementById('btn-scan').disabled = false;
+      document.getElementById('btn-scan').textContent = '[ ATTACK ]';
+      await loadReport();
+    } else if (d.status === 'error') {
+      clearInterval(pollT);
+      termLine('terr', `// FALHA: ${d.error}`);
+      document.getElementById('btn-scan').disabled = false;
+      document.getElementById('btn-scan').textContent = '[ ATTACK ]';
+    }
+  } catch(e) { console.error(e); }
+}
+
+async function loadReport() {
+  const r = await fetch(`${API}/api/scans/${scanId}/report/`);
+  report = await r.json();
+  populateAll(report);
+}
+
+// ─── POPULATE ────────────────────────────────────────────────────────────────
+function populateAll(rp) {
+  fillFindings(rp);
+  fillWAF(rp);
+  fillOWASP(rp);
+  fillHeaders(rp);
+  fillTLS(rp);
+  fillTeams(rp);
+  fillReport(rp);
+  fillPoC(rp);
+  fillEvidence(rp);
+}
+
+function fillFindings(rp) {
+  const sm = rp.summary || {};
+  el('s-crit').textContent = sm.CRITICAL||0;
+  el('s-high').textContent = sm.HIGH||0;
+  el('s-med').textContent  = sm.MEDIUM||0;
+  el('s-low').textContent  = sm.LOW||0;
+  const findings = rp.all_findings || [];
+  el('findings-count').textContent = `${findings.length} FINDINGS`;
+  const badge = el('badge');
+  badge.textContent = findings.length;
+  badge.classList.toggle('show', findings.length > 0);
+  const container = el('findings-list');
+  if (!findings.length) { container.innerHTML='<div class="empty"><div class="empty-icon">✅</div>NENHUMA VULNERABILIDADE CRÍTICA</div>'; return; }
+  const ord = {CRITICAL:0,HIGH:1,MEDIUM:2,LOW:3,INFO:4};
+  const sorted = [...findings].sort((a,b)=>(ord[a.severity]||4)-(ord[b.severity]||4));
+  container.innerHTML = sorted.map((f,i)=>{
+    const sev = f.severity||'INFO';
+    const sl = {CRITICAL:'CRÍTICO',HIGH:'ALTO',MEDIUM:'MÉDIO',LOW:'BAIXO',INFO:'INFO'}[sev]||sev;
+    return `<div class="finding">
+      <div class="finding-head" onclick="toggleF(${i})">
+        <span class="f-type">${esc(f.type||'VULN')}</span>
+        <span class="sev s-${sev}">${sl}</span>
+        <span class="f-title">${esc(f.title||'')}</span>
+        ${f.cvss?`<span class="f-cvss">CVSS ${f.cvss}</span>`:''}
+        ${f.id&&f.id.startsWith('CVE')?`<span class="f-cvss">${esc(f.id)}</span>`:''}
+      </div>
+      <div class="f-body" id="fb-${i}">
+        ${f.description?`<div class="f-row"><strong>DESC:</strong> ${esc(f.description)}</div>`:''}
+        ${f.remediation?`<div class="f-row"><strong>FIX:</strong> ${esc(f.remediation)}</div>`:''}
+      </div></div>`;
+  }).join('');
+}
+
+function toggleF(i) { const b=el('fb-'+i); b.classList.toggle('open'); }
+
+function fillWAF(rp) {
+  const waf = rp.waf||{};
+  const det = (waf.detected||['—']).join(', ');
+  el('waf-name').textContent = det;
+  const bp = waf.bypasses||[];
+  const bypassedN = bp.filter(b=>b.result==='BYPASS').length;
+  el('waf-bp-count').textContent = bypassedN;
+  el('waf-total').textContent = bp.length;
+  const c = el('waf-bypass-body');
+  if (!bp.length) { c.innerHTML='<div class="empty">SEM DADOS</div>'; return; }
+  c.innerHTML=`<table class="rs-table"><thead><tr><th>Técnica</th><th>Categoria</th><th>Payload</th><th>Resultado</th><th>HTTP</th></tr></thead><tbody>${
+    bp.map(b=>{
+      const p=(b.payload||'').substring(0,32)+((b.payload||'').length>32?'…':'');
+      return `<tr><td>${esc(b.name||'')}</td><td>${esc(b.category||'')}</td><td><code style="font-family:var(--mono);font-size:10px;color:#7ec8e3">${esc(p)}</code></td><td class="r-${b.result}">${b.result}</td><td>${b.status_code||'—'}</td></tr>`;
+    }).join('')
+  }</tbody></table>`;
+}
+
+function fillOWASP(rp) {
+  const res = rp.owasp_results||[];
+  const c = el('owasp-body');
+  if (!res.length) { c.innerHTML='<div class="empty">SEM DADOS</div>'; return; }
+  c.innerHTML=`<table class="rs-table"><thead><tr><th>Categoria</th><th>Status</th><th>Observações</th></tr></thead><tbody>${
+    res.map(r=>{
+      const st=r.status||'INFO';
+      const lb={VULN:'VULNERÁVEL',PASS:'OK',INFO:'INFO'}[st]||st;
+      const obs=(r.findings||[]).join('; ').substring(0,110)||'—';
+      return `<tr><td>${esc(r.category||'')}</td><td class="owasp-${st}">${lb}</td><td style="font-size:10px">${esc(obs)}</td></tr>`;
+    }).join('')
+  }</tbody></table>`;
+}
+
+function fillHeaders(rp) {
+  const hdrs = rp.security_headers||[];
+  const c = el('headers-body');
+  if (!hdrs.length) { c.innerHTML='<div class="empty">SEM DADOS</div>'; return; }
+  c.innerHTML=`<table class="rs-table"><thead><tr><th>Header</th><th>Status</th><th>Severidade</th></tr></thead><tbody>${
+    hdrs.map(h=>{
+      const cls = h.present?'hdr-ok':'hdr-no';
+      const st  = h.present?'✓ PRESENTE':'✗ AUSENTE';
+      const sc  = {HIGH:'var(--red)',MEDIUM:'var(--orange)',LOW:'var(--blue)'}[h.severity]||'var(--text3)';
+      return `<tr><td><code style="font-family:var(--mono);font-size:10px">${esc(h.header)}</code></td><td class="${cls}">${st}</td><td style="color:${sc};font-family:var(--mono);font-size:10px">${h.severity||''}</td></tr>`;
+    }).join('')
+  }</tbody></table>`;
+}
+
+function fillTLS(rp) {
+  const tls = rp.tls||{};
+  const card = el('tls-card');
+  if (!tls.version && !tls.issuer) { card.style.display='none'; return; }
+  card.style.display='block';
+  const vc=tls.valid?'var(--green)':'var(--red)';
+  const vl=tls.valid?'✓ VÁLIDO':'✗ INVÁLIDO';
+  const dc=(tls.days_remaining||0)>30?'var(--green)':(tls.days_remaining||0)>7?'var(--orange)':'var(--red)';
+  el('tls-body').innerHTML=`<div class="tls-grid">
+    <div class="tls-item"><div class="tls-lbl">STATUS</div><div class="tls-val" style="color:${vc}">${vl}</div></div>
+    <div class="tls-item"><div class="tls-lbl">VERSÃO</div><div class="tls-val">${esc(tls.version||'—')}</div></div>
+    <div class="tls-item"><div class="tls-lbl">EMISSOR</div><div class="tls-val" style="font-size:10px">${esc(tls.issuer||'—')}</div></div>
+    <div class="tls-item"><div class="tls-lbl">EXPIRAÇÃO</div><div class="tls-val">${esc(tls.expiry||'—')}</div></div>
+    <div class="tls-item"><div class="tls-lbl">DIAS RESTANTES</div><div class="tls-val" style="color:${dc}">${tls.days_remaining||0}</div></div>
+    <div class="tls-item"><div class="tls-lbl">AUTO-ASSINADO</div><div class="tls-val" style="color:${tls.self_signed?'var(--orange)':'var(--green)'}">${tls.self_signed?'SIM':'NÃO'}</div></div>
+  </div>`;
+}
+
+function fillTeams(rp) {
+  el('red-pct').textContent = (rp.red_team_score||0)+'%';
+  el('blue-pct').textContent = (rp.blue_team_score||0)+'%';
+  el('score-txt').textContent = `RED ${rp.red_team_score||0}% vs BLUE ${rp.blue_team_score||0}%`;
+  const rActs = rp.red_team_actions||[];
+  const bActs = rp.blue_team_actions||[];
+  const ra = el('red-acts'), ba = el('blue-acts');
+  ra.innerHTML = rActs.map(a=>`<div class="tact"><div class="adot a-done" style="border-radius:0"></div>${esc(a.action)}</div>`).join('');
+  ba.innerHTML = bActs.map(a=>`<div class="tact"><div class="adot a-done" style="background:var(--blue);border-radius:0"></div>${esc(a.action)}</div>`).join('');
+  setTimeout(()=>{
+    el('sb-red').style.width=(rp.red_team_score||0)+'%';
+    el('sb-blue').style.width=(rp.blue_team_score||0)+'%';
+  },400);
+}
+
+function fillReport(rp) {
+  el('rep-empty').style.display='none';
+  el('rep-content').style.display='flex';
+  const sc = rp.risk_score||0;
+  el('g-score').textContent = sc;
+  const [vLabel, vClass, vColor] = sc>=9?['CRÍTICO','crit','var(--red)']:sc>=7?['ALTO','high','var(--orange)']:sc>=4?['MÉDIO','med','var(--blue)']:['BAIXO','low','var(--teal)'];
+  el('g-score').style.color = vColor;
+  const v = el('g-verdict');
+  v.textContent = vLabel; v.className = 'g-verdict ' + vClass;
+  const arc = el('g-arc');
+  arc.style.stroke = vColor;
+  setTimeout(()=>{ arc.setAttribute('stroke-dashoffset', 251-(sc/10)*251); }, 100);
+  el('btn-pdf').style.display='inline-block';
+  el('btn-json').style.display='inline-block';
+  const techs = rp.technologies||[];
+  el('rep-tech').innerHTML = techs.length?`<div class="card"><div class="card-head"><span class="card-title">Tecnologias Detectadas</span></div><div class="card-body"><div class="tech-tags">${techs.map(t=>`<span class="ttag">${esc(t.name)}</span>`).join('')}</div></div></div>`:'';
+}
+
+function animateTeams() {
+  const rD = document.querySelectorAll('#red-acts .adot');
+  const bD = document.querySelectorAll('#blue-acts .adot');
+  let ri=0,bi=0;
+  const rt=setInterval(()=>{ if(ri>0)rD[ri-1].className='adot a-done'; if(ri<rD.length){rD[ri].className='adot a-active';ri++}else clearInterval(rt); },900);
+  setTimeout(()=>{ const bt=setInterval(()=>{ if(bi>0)bD[bi-1].className='adot a-done'; if(bi<bD.length){bD[bi].className='adot a-active';bi++}else clearInterval(bt); },850); },250);
+}
+
+// ─── DOWNLOADS ──────────────────────────────────────────────────────────────
+function dlPDF() { if(scanId) window.open(`${API}/api/scans/${scanId}/pdf/`,'_blank'); }
+function dlJSON() {
+  if(!report) return;
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'}));
+  a.download='redshield-report.json'; a.click();
+}
+
+// ─── HISTORY ─────────────────────────────────────────────────────────────────
+async function loadHistory() {
+  const c = el('hist-body');
+  const r = await fetch(`${API}/api/scans/list/`);
+  const scans = await r.json();
+  if (!scans.length) { c.innerHTML='<div class="empty"><div class="empty-icon">⏱</div>NENHUM SCAN</div>'; return; }
+  c.innerHTML=`<table class="hist-table"><thead><tr><th>ID</th><th>Alvo</th><th>Status</th><th>Score</th></tr></thead><tbody>${
+    scans.map(s=>`<tr onclick="loadScanById('${s.id}')"><td style="color:var(--text3)">${s.id.substring(0,8)}</td><td>${esc(s.target||'')}</td><td class="st-${s.status}">${s.status.toUpperCase()}</td><td>${s.risk_score!=null?s.risk_score+'/10':'—'}</td></tr>`).join('')
+  }</tbody></table>`;
+}
+
+async function loadScanById(id) {
+  scanId = id;
+  const r = await fetch(`${API}/api/scans/${id}/report/`);
+  if (!r.ok) return;
+  report = await r.json();
+  populateAll(report);
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  el('panel-findings').classList.add('active');
+}
+
+// ─── TERMINAL ────────────────────────────────────────────────────────────────
+function termClear() { el('term-body').innerHTML=''; logCount=0; }
+function termLine(cls, text) {
+  const b=el('term-body');
+  const d=document.createElement('div');
+  d.className='tl';
+  d.innerHTML=`<span class="${cls}">${esc(text)}</span>`;
+  b.appendChild(d);
+  b.parentElement.scrollTop=b.parentElement.scrollHeight;
+}
+
+
+// ─── PoC / BUG BOUNTY ────────────────────────────────────────────────────────
+let pocData = [];
+let pocFilter = 'ALL';
+
+const POC_TEMPLATES = {
+  'SQL Injection': {
+    steps: [
+      '1. Abra o Burp Suite (ou qualquer proxy HTTP)',
+      '2. Navegue até a URL alvo e intercepte a requisição',
+      '3. Envie a requisição para o Repeater',
+      '4. Injete o payload no parâmetro vulnerável',
+      '5. Observe o erro de banco de dados ou resposta anômala na resposta HTTP'
+    ],
+    payload_hint: "' OR 1=1 -- -",
+    impact: 'Extração de dados sensíveis, bypass de autenticação, RCE via xp_cmdshell',
+    scope: 'Dados',
+    auth_required: false,
+    cwe: 'CWE-89',
+    bounty_tier: 'HIGH → CRITICAL'
+  },
+  'XSS': {
+    steps: [
+      '1. Identifique campos de entrada ou parâmetros refletidos na resposta',
+      '2. Injete o payload XSS no campo vulnerável',
+      '3. Observe a execução do JavaScript no navegador da vítima',
+      '4. Para Stored XSS: salve o payload e acesse a página com outra conta'
+    ],
+    payload_hint: "<scr"+"ipt>alert(document.cookie)</s"+"cript>",
+    impact: 'Roubo de cookies, session hijacking, redirecionamento malicioso, defacement',
+    scope: 'Usuário',
+    auth_required: false,
+    cwe: 'CWE-79',
+    bounty_tier: 'LOW → HIGH'
+  },
+  'SSRF': {
+    steps: [
+      '1. Localize parâmetros que aceitam URLs (ex: url=, redirect=, img=)',
+      '2. Substitua a URL por um endpoint interno (ex: http://169.254.169.254/latest/meta-data/)',
+      '3. Observe a resposta — se retornar dados internos, SSRF confirmado',
+      '4. Tente acessar serviços internos: Redis, Elasticsearch, metadados de cloud'
+    ],
+    payload_hint: "http://169.254.169.254/latest/meta-data/iam/security-credentials/",
+    impact: 'Leitura de metadados de cloud, acesso a serviços internos, SSRF → RCE',
+    scope: 'Infraestrutura',
+    auth_required: false,
+    cwe: 'CWE-918',
+    bounty_tier: 'HIGH → CRITICAL'
+  },
+  'Path Traversal': {
+    steps: [
+      '1. Identifique parâmetros que referenciam arquivos (file=, path=, include=)',
+      '2. Injete sequências de traversal no parâmetro',
+      '3. Tente acessar /etc/passwd (Linux) ou C:/Windows/win.ini (Windows)',
+      '4. Tente encodings alternativos: %2e%2e%2f, ..%2f, %252e%252e%252f'
+    ],
+    payload_hint: "../../../../etc/passwd",
+    impact: 'Leitura de arquivos sensíveis do sistema, credenciais, chaves privadas',
+    scope: 'Sistema de Arquivos',
+    auth_required: false,
+    cwe: 'CWE-22',
+    bounty_tier: 'MEDIUM → HIGH'
+  },
+  'IDOR': {
+    steps: [
+      '1. Autentique-se como usuário A e capture requisições com IDs',
+      '2. Substitua o ID pelo ID de outro recurso (usuário B, admin, etc)',
+      '3. Verifique se o servidor retorna dados do outro recurso sem autorizar',
+      '4. Tente IDs sequenciais, GUIDs previsíveis e manipulação de parâmetros'
+    ],
+    payload_hint: "GET /api/users/2/profile  (autenticado como user_id=1)",
+    impact: 'Acesso não autorizado a dados de outros usuários, vazamento de PII',
+    scope: 'Autorização',
+    auth_required: true,
+    cwe: 'CWE-639',
+    bounty_tier: 'MEDIUM → HIGH'
+  },
+  'XXE': {
+    steps: [
+      '1. Identifique endpoints que processam XML',
+      '2. Injete uma entidade externa no XML da requisição',
+      '3. Observe se o servidor processa a entidade e retorna o conteúdo do arquivo',
+      '4. Tente XXE blind com interação out-of-band via Burp Collaborator'
+    ],
+    payload_hint: '<?xml version="1.0"?><!DOCTYPE root [<!ENTITY xxe SYSTEM "file:///etc/passwd">]><root>&xxe;</root>',
+    impact: 'Leitura de arquivos internos, SSRF, negação de serviço via Billion Laughs',
+    scope: 'Parser XML',
+    auth_required: false,
+    cwe: 'CWE-611',
+    bounty_tier: 'HIGH → CRITICAL'
+  },
+  'SSTI': {
+    steps: [
+      '1. Identifique campos que refletem input na resposta (ex: nome, template)',
+      '2. Injete expressões matemáticas de template: {{7*7}}, ${7*7}, #{7*7}',
+      '3. Se retornar 49, SSTI confirmado — identifique o engine de template',
+      '4. Escale para RCE usando payloads específicos do engine (Jinja2, Twig, etc)'
+    ],
+    payload_hint: "{{7*7}} / ${7*7} / #{7*7} / {{config.__class__.__init__.__globals__['os'].popen('id').read()}}",
+    impact: 'Remote Code Execution, leitura de arquivos, exfiltração de credenciais',
+    scope: 'Template Engine',
+    auth_required: false,
+    cwe: 'CWE-94',
+    bounty_tier: 'CRITICAL'
+  },
+  'Open Redirect': {
+    steps: [
+      '1. Localize parâmetros de redirecionamento (next=, redirect=, url=, return=)',
+      '2. Substitua o valor por uma URL externa (https://evil.com)',
+      '3. Verifique se o servidor redireciona para o domínio externo',
+      '4. Combine com OAuth/SSO para token theft — valor aumenta para HIGH'
+    ],
+    payload_hint: "?next=https://evil.com / ?redirect=//evil.com",
+    impact: 'Phishing, token theft via OAuth, bypass de whitelist',
+    scope: 'Autenticação/Redirecionamento',
+    auth_required: false,
+    cwe: 'CWE-601',
+    bounty_tier: 'LOW → MEDIUM'
+  },
+  'Header Injection': {
+    steps: [
+      '1. Identifique headers ausentes ou mal configurados',
+      '2. Teste injeção de CRLF nos parâmetros de entrada',
+      '3. Para headers de segurança ausentes, documente o risco de exploração',
+      '4. Demonstre bypass de CSP, clickjacking ou sniffing de conteúdo'
+    ],
+    payload_hint: "X-Forwarded-For: 127.0.0.1\r\nX-Custom: injected",
+    impact: 'Cache poisoning, CSRF, session fixation, XSS via header injection',
+    scope: 'HTTP Headers',
+    auth_required: false,
+    cwe: 'CWE-113',
+    bounty_tier: 'LOW → MEDIUM'
+  }
+};
+
+const SEVERITY_COLORS = {CRITICAL:'var(--red)',HIGH:'var(--orange)',MEDIUM:'var(--blue)',LOW:'var(--teal)',INFO:'var(--text3)'};
+const SEVERITY_ORDER = {CRITICAL:0,HIGH:1,MEDIUM:2,LOW:3,INFO:4};
+
+function buildPoCFromFindings(rp) {
+  const findings = rp.all_findings || [];
+  const target = rp.target || rp.url || '—';
+  pocData = [];
+
+  findings.forEach((f, idx) => {
+    if (!f || !f.title) return;
+    // Match template by type or title keyword
+    let tmpl = null;
+    const key = Object.keys(POC_TEMPLATES).find(k =>
+      (f.type||'').toLowerCase().includes(k.toLowerCase()) ||
+      (f.title||'').toLowerCase().includes(k.toLowerCase())
+    );
+    tmpl = key ? POC_TEMPLATES[key] : null;
+
+    const sev = f.severity || 'INFO';
+    const cvss = parseFloat(f.cvss) || null;
+
+    const poc = {
+      idx,
+      id: f.id || ('VULN-' + String(idx+1).padStart(3,'0')),
+      title: f.title || 'Vulnerabilidade #' + (idx+1),
+      severity: sev,
+      cvss,
+      type: f.type || 'UNKNOWN',
+      description: f.description || '—',
+      remediation: f.remediation || '—',
+      target,
+      // Template enrichment
+      steps: tmpl ? tmpl.steps : ['1. Identifique o ponto de injeção na aplicação','2. Reproduza a condição de vulnerabilidade conforme a descrição','3. Documente a resposta anômala do servidor','4. Capture evidências (screenshots, logs, resposta HTTP)'],
+      payload: tmpl ? tmpl.payload_hint : (f.payload || f.evidence || ''),
+      impact: tmpl ? tmpl.impact : (f.impact || f.description || '—'),
+      scope: tmpl ? tmpl.scope : 'Aplicação',
+      auth_required: tmpl ? tmpl.auth_required : false,
+      cwe: tmpl ? tmpl.cwe : (f.cwe || '—'),
+      bounty_tier: tmpl ? tmpl.bounty_tier : ({'CRITICAL':'CRITICAL','HIGH':'HIGH','MEDIUM':'MEDIUM','LOW':'LOW','INFO':'INFO'}[sev]),
+      raw: f
+    };
+    pocData.push(poc);
+  });
+
+  // Sort by severity
+  pocData.sort((a,b) => (SEVERITY_ORDER[a.severity]||4) - (SEVERITY_ORDER[b.severity]||4));
+}
+
+function renderPoC() {
+  const filtered = pocFilter === 'ALL' ? pocData : pocData.filter(p => p.severity === pocFilter);
+  const list = el('poc-list');
+  if (!filtered.length) {
+    list.innerHTML = '<div class="poc-no-results">NENHUM PoC PARA O FILTRO SELECIONADO</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map((poc, i) => {
+    const sevColor = SEVERITY_COLORS[poc.severity] || 'var(--text3)';
+    const sevLabel = {CRITICAL:'CRÍTICO',HIGH:'ALTO',MEDIUM:'MÉDIO',LOW:'BAIXO',INFO:'INFO'}[poc.severity] || poc.severity;
+    const cvssW = poc.cvss ? Math.min((poc.cvss/10)*100,100) : 0;
+    const cvssColor = poc.cvss>=9?'var(--red)':poc.cvss>=7?'var(--orange)':poc.cvss>=4?'var(--blue)':'var(--teal)';
+    const stepsHtml = poc.steps.map(s => `<div style="margin-bottom:4px;line-height:1.6">${esc(s)}</div>`).join('');
+    const payloadSection = poc.payload ? `
+      <div class="poc-field">
+        <div class="poc-field-lbl">💉 Payload / Prova de Exploração</div>
+        <div style="display:flex;align-items:flex-start;gap:8px">
+          <div class="poc-code" id="poc-payload-${i}">${esc(poc.payload)}</div>
+          <button class="poc-copy-btn" id="poc-copy-${i}" onclick="copyPoC(${i})">COPIAR</button>
+        </div>
+      </div>` : '';
+
+    return `<div class="poc-vuln">
+      <div class="poc-vuln-head">
+        <span class="sev s-${poc.severity}">${sevLabel}</span>
+        <span style="font-family:var(--mono);font-size:10px;color:var(--text3)">${esc(poc.type)}</span>
+        <span style="font-family:var(--mono);font-size:12px;color:var(--text);flex:1">${esc(poc.title)}</span>
+        <span style="font-family:var(--mono);font-size:10px;color:${sevColor}">💰 ${esc(poc.bounty_tier)}</span>
+        <span style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-left:8px">${esc(poc.id)}</span>
+        <button class="poc-copy-btn" style="margin-left:10px" onclick="togglePoCBody(${i})">▼ DETALHES</button>
+      </div>
+      <div class="poc-vuln-body" id="poc-body-${i}" style="display:none">
+        <div class="poc-field">
+          <div class="poc-field-lbl">🎯 Alvo</div>
+          <div class="poc-field-val">${esc(poc.target)}</div>
+        </div>
+        <div class="poc-field">
+          <div class="poc-field-lbl">📋 Descrição</div>
+          <div class="poc-field-val">${esc(poc.description)}</div>
+        </div>
+        ${poc.cvss ? `<div class="poc-field">
+          <div class="poc-field-lbl">📊 CVSS Score: <span style="color:${cvssColor}">${poc.cvss}</span></div>
+          <div class="poc-cvss-bar"><div class="poc-cvss-track"><div class="poc-cvss-fill" style="width:${cvssW}%;background:${cvssColor}"></div></div></div>
+        </div>` : ''}
+        <div class="poc-field">
+          <div class="poc-field-lbl">🔬 Passos para Reprodução</div>
+          <div class="poc-field-val">${stepsHtml}</div>
+        </div>
+        ${payloadSection}
+        <div style="display:flex;gap:16px;flex-wrap:wrap">
+          <div class="poc-field" style="flex:1;min-width:200px">
+            <div class="poc-field-lbl">💥 Impacto</div>
+            <div class="poc-field-val">${esc(poc.impact)}</div>
+          </div>
+          <div class="poc-field" style="flex:1;min-width:200px">
+            <div class="poc-field-lbl">🔧 Remediação</div>
+            <div class="poc-field-val">${esc(poc.remediation)}</div>
+          </div>
+        </div>
+        <div style="margin-top:8px">
+          <span class="poc-tag poc-tag-scope">SCOPE: ${esc(poc.scope)}</span>
+          <span class="poc-tag poc-tag-auth">${poc.auth_required ? '🔐 AUTH REQUERIDA' : '🔓 SEM AUTH'}</span>
+          ${poc.cwe && poc.cwe !== '—' ? `<span class="poc-tag poc-tag-impact">${esc(poc.cwe)}</span>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function togglePoCBody(i) {
+  const b = el('poc-body-'+i);
+  b.style.display = b.style.display === 'none' ? 'block' : 'none';
+}
+
+function copyPoC(i) {
+  const payload = el('poc-payload-'+i);
+  const btn = el('poc-copy-'+i);
+  if (!payload) return;
+  navigator.clipboard.writeText(payload.textContent).then(() => {
+    btn.textContent = '✓ COPIADO';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'COPIAR'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+function setPoCFilter(sev) {
+  pocFilter = sev;
+  document.querySelectorAll('.poc-filter').forEach(f => f.classList.toggle('active', f.dataset.sev === sev));
+  renderPoC();
+}
+
+function fillPoC(rp) {
+  buildPoCFromFindings(rp);
+  const total = pocData.length;
+  const badge = el('badge-poc');
+  badge.textContent = total;
+  badge.classList.toggle('show', total > 0);
+  el('poc-count-label').textContent = total + ' PoCs GERADOS';
+
+  if (!total) {
+    el('poc-empty-state').style.display = 'block';
+    el('poc-loaded-state').style.display = 'none';
+    el('poc-export-btn').style.display = 'none';
+    return;
+  }
+
+  el('poc-empty-state').style.display = 'none';
+  el('poc-loaded-state').style.display = 'block';
+  el('poc-export-btn').style.display = 'inline-block';
+
+  // Summary grid
+  const counts = {CRITICAL:0,HIGH:0,MEDIUM:0,LOW:0,INFO:0};
+  pocData.forEach(p => counts[p.severity] = (counts[p.severity]||0)+1);
+  el('poc-summary-grid').innerHTML = [
+    {sev:'CRITICAL',label: "CRÍTICO",color:'var(--red)'},
+    {sev:'HIGH',label: "ALTO",color:'var(--orange)'},
+    {sev:'MEDIUM',label: "MÉDIO",color:'var(--blue)'}
+  ].filter(s => counts[s.sev] > 0).map(s =>
+    `<div class="poc-summary-item"><div class="poc-summary-num" style="color:${s.color}">${counts[s.sev]}</div><div class="poc-summary-lbl">${s.label}</div></div>`
+  ).join('');
+
+  // Filter bar
+  const filters = [['ALL','TODOS'],...Object.entries({CRITICAL:'CRÍTICO',HIGH:'ALTO',MEDIUM:'MÉDIO',LOW:'BAIXO',INFO:'INFO'}).filter(([k])=>counts[k]>0)];
+  el('poc-filter-bar').innerHTML = filters.map(([sev,lbl]) =>
+    `<button class="poc-filter ${sev===pocFilter?'active':''}" data-sev="${sev}" onclick="setPoCFilter('${sev}')">${lbl} ${sev==='ALL'?'('+total+')':'('+counts[sev]+')'}</button>`
+  ).join('');
+
+  renderPoC();
+}
+
+function exportPoC() {
+  if (!pocData.length) return;
+  const target = pocData[0]?.target || 'alvo';
+  const date = new Date().toLocaleDateString('pt-BR');
+  let md = `# 🐛 PoC — Proof of Concept\n`;
+  md += `**Alvo:** ${target}\n`;
+  md += `**Data:** ${date}\n`;
+  md += `**Total de Vulnerabilidades:** ${pocData.length}\n\n---\n\n`;
+
+  pocData.forEach((poc, i) => {
+    const sevLabel = {CRITICAL:'CRÍTICO',HIGH:'ALTO',MEDIUM:'MÉDIO',LOW:'BAIXO',INFO:'INFO'}[poc.severity]||poc.severity;
+    md += `## ${i+1}. ${poc.title}\n\n`;
+    md += `- **ID:** ${poc.id}\n`;
+    md += `- **Severidade:** ${sevLabel} (${poc.severity})\n`;
+    md += `- **Tipo:** ${poc.type}\n`;
+    if (poc.cvss) md += `- **CVSS:** ${poc.cvss}\n`;
+    md += `- **CWE:** ${poc.cwe}\n`;
+    md += `- **Recompensa Esperada:** ${poc.bounty_tier}\n`;
+    md += `- **Autenticação:** ${poc.auth_required ? 'Necessária' : 'Não necessária'}\n\n`;
+    md += `### Descrição\n${poc.description}\n\n`;
+    md += `### Passos para Reprodução\n`;
+    poc.steps.forEach(s => md += `${s}\n`);
+    if (poc.payload) md += `\n### Payload\n\`\`\`\n${poc.payload}\n\`\`\`\n`;
+    md += `\n### Impacto\n${poc.impact}\n\n`;
+    md += `### Remediação\n${poc.remediation}\n\n---\n\n`;
+  });
+
+  const blob = new Blob([md], {type:'text/markdown'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'poc-bug-bounty.md';
+  a.click();
+}
+
+// ─── PROVAS / EVIDENCE ───────────────────────────────────────────────────────
+let evData = [];
+let evFilter = 'ALL';
+
+const EV_SCREENSHOT_GUIDE = {
+  'SQL Injection': {
+    icon: '💉',
+    screenshots: [
+      { label: "PAYLOAD NO CAMPO", desc: "Capture a tela com a URL completa visível e o payload ' OR 1=1 -- - digitado no campo vulnerável, antes de enviar." },
+      { label: "RESPOSTA DO SERVIDOR", desc: "Capture o erro de banco de dados retornado (stack trace MySQL/MSSQL/ORA-), ou a resposta anômala com dados expostos." },
+      { label: "BURP REPEATER (REQ+RES)", desc: "Screenshot do Burp Repeater mostrando: Request com payload no parâmetro + Response com o erro/dados. Ambos os painéis visíveis." },
+      { label: "IMPACTO DEMONSTRADO", desc: "Se possível, capture dados extraídos (tabela de usuários, hashes) ou o bypass de login bem-sucedido com a conta acessada." }
+    ],
+    burp_tip: 'No Repeater: clique direito no Request → "Copy as curl command" e cole no relatório.',
+    checklist: ['URL completa visível', 'Payload exato documentado', 'Erro de banco ou dados expostos', 'Request HTTP completo', 'Response HTTP completa']
+  },
+  'XSS': {
+    icon: '🔥',
+    screenshots: [
+      { label: "PAYLOAD INJETADO", desc: "Capture o campo de input com o payload XSS inserido e a URL completa visível na barra de endereços." },
+      { label: "EXECUÇÃO DO JS", desc: "Capture o alert/popup executado. Para document.cookie: o popup deve mostrar o valor do cookie. Para document.domain: mostra o domínio afetado." },
+      { label: "NETWORK TAB (DEVTOOLS)", desc: "F12 → Network: capture a requisição com o payload no corpo/parâmetro e a resposta HTML com o script não sanitizado." },
+      { label: "STORED XSS: DUAS CONTAS", desc: "Se Stored XSS: screenshot da conta A inserindo o payload + screenshot da conta B (diferente) vendo o alert executar." }
+    ],
+    burp_tip: 'Use payload: <img src=x onerror="alert(document.domain+'|'+document.cookie)"> para provar domínio e cookie em um único screenshot.',
+    checklist: ['Alert/execução JS visível', 'Domínio afetado no alert', 'URL com payload refletido', 'Resposta HTML com script não escapado', 'Para Stored: 2 contas diferentes']
+  },
+  'SSRF': {
+    icon: '🌐',
+    screenshots: [
+      { label: "PARÂMETRO MANIPULADO", desc: "Capture o Request com o parâmetro URL alterado para http://169.254.169.254/latest/meta-data/ ou seu servidor externo." },
+      { label: "RESPOSTA COM DADOS INTERNOS", desc: "Capture a response com metadados de cloud, conteúdo de serviço interno (Redis, ES) ou o callback recebido no Burp Collaborator." },
+      { label: "BURP COLLABORATOR (BLIND)", desc: "Se SSRF blind: screenshot do painel do Collaborator/interactsh mostrando a interação DNS ou HTTP recebida do servidor alvo." }
+    ],
+    burp_tip: 'Burp Pro: Burp → Burp Collaborator client → Copy to clipboard. Injete a URL e aguarde a interação aparecer no painel.',
+    checklist: ['Request com URL interna/externa injetada', 'Response com dados internos OU callback recebido', 'Timestamp da interação visível']
+  },
+  'Path Traversal': {
+    icon: '📂',
+    screenshots: [
+      { label: "PAYLOAD DE TRAVERSAL", desc: "Capture o Request com ../../../../etc/passwd no parâmetro vulnerável (file=, path=, include=)." },
+      { label: "CONTEÚDO DO ARQUIVO", desc: "Capture a Response mostrando o conteúdo de /etc/passwd, /etc/shadow, .env, ou outro arquivo sensível retornado pelo servidor." },
+      { label: "URL ENCODING ALTERNATIVO", desc: "Se necessário encoding: capture também com %2e%2e%2f para demonstrar bypass de filtro." }
+    ],
+    burp_tip: 'No Repeater, teste variações: ../../../etc/passwd, ..%2f..%2f..%2fetc%2fpasswd, %252e%252e%252f',
+    checklist: ['Payload no parâmetro visível', 'Conteúdo de arquivo sensível na resposta', 'Request HTTP completo com o traversal']
+  },
+  'IDOR': {
+    icon: '🔓',
+    screenshots: [
+      { label: "DUAS SESSÕES LADO A LADO", desc: "Abra dois browsers (ou aba normal + aba anônima). Capture ambos visíveis: conta A logada à esquerda, conta B logada à direita." },
+      { label: "REQUEST DA CONTA A COM ID DA B", desc: "Capture o Burp Repeater com a requisição da conta A acessando o recurso do ID da conta B (ex: /api/users/101/profile)." },
+      { label: "DADOS PRIVADOS EXPOSTOS", desc: "Capture a Response retornando dados privados da conta B (email, nome, PII) para a conta A. Destaque os dados com caixa vermelha." }
+    ],
+    burp_tip: 'Technique: logue como User A, capture a req, mande pro Repeater, troque o ID pelo da User B. Compare as responses.',
+    checklist: ['Duas contas distintas demonstradas', 'ID de outro usuário no request', 'Dados privados na response', 'Sem autorização para o acesso']
+  },
+  'XXE': {
+    icon: '📄',
+    screenshots: [
+      { label: "PAYLOAD XML INJETADO", desc: "Capture o Request com o payload XXE no corpo XML: entidade externa apontando para file:///etc/passwd." },
+      { label: "CONTEÚDO DO ARQUIVO NA RESPONSE", desc: "Capture a Response mostrando o conteúdo do arquivo interno processado pela entidade externa." },
+      { label: "OUT-OF-BAND (BLIND XXE)", desc: "Se blind: capture o Burp Collaborator ou interactsh mostrando a interação DNS/HTTP com o conteúdo exfiltrado." }
+    ],
+    burp_tip: 'Teste endpoint: Content-Type: application/xml. Se aceitar XML, injete a entidade e observe se processa.',
+    checklist: ['Payload XML completo documentado', 'Response com arquivo lido OU callback OOB', 'Endpoint que processa XML identificado']
+  },
+  'SSTI': {
+    icon: '⚙️',
+    screenshots: [
+      { label: "EXPRESSÃO MATEMÁTICA", desc: "Capture o campo/parâmetro com {{7*7}} injetado e a resposta mostrando 49 — isso confirma o SSTI sem executar código." },
+      { label: "IDENTIFICAÇÃO DO ENGINE", desc: "Capture testes para identificar o template engine: {{7*\'7\'}} retorna 7777777 = Jinja2, 49 = Twig." },
+      { label: "RCE CONFIRMADO", desc: "Capture a execução do comando id ou whoami via payload do engine específico para demonstrar impacto máximo (RCE)." }
+    ],
+    burp_tip: 'Escale gradualmente: 1) {{7*7}} → 2) identifica engine → 3) {{config.__class__...}} para Jinja2.',
+    checklist: ['Expressão matemática retornando resultado', 'Engine identificado', 'RCE ou leitura de arquivo demonstrada']
+  },
+  'Open Redirect': {
+    icon: '↪️',
+    screenshots: [
+      { label: "URL COM REDIRECT MALICIOSO", desc: "Capture a URL completa com ?next=https://evil.com ou ?redirect=//evil.com na barra de endereços." },
+      { label: "REDIRECIONAMENTO OCORRENDO", desc: "Capture o momento do redirect: DevTools → Network → veja o 302 Location: https://evil.com na response." },
+      { label: "DESTINO EXTERNO ALCANÇADO", desc: "Capture o browser já na página externa (evil.com ou seu domínio de teste) após o redirect do site alvo." }
+    ],
+    burp_tip: 'No Burp: desative o "Follow redirections" para capturar o 302 com Location header apontando para domínio externo.',
+    checklist: ['URL de redirect com domínio externo', 'Response 302 com Location header externo', 'Destino externo alcançado demonstrado']
+  },
+  'Header Injection': {
+    icon: '📋',
+    screenshots: [
+      { label: "HEADER AUSENTE NA RESPONSE", desc: "Capture o curl -I ou DevTools → Network → Headers da response mostrando a ausência do header de segurança." },
+      { label: "IMPACTO DEMONSTRADO", desc: "Para clickjacking (sem X-Frame-Options): capture a página em iframe externo. Para XSS via header: capture a injeção." },
+      { label: "RELATÓRIO SECURITYHEADERS.COM", desc: "Acesse securityheaders.com com o domínio alvo e capture o resultado F ou D como evidência complementar." }
+    ],
+    burp_tip: 'curl -I https://alvo.com | grep -i "x-frame\|content-security\|strict-transport" — output vazio = evidência.',
+    checklist: ['Header ausente documentado', 'curl -I ou DevTools mostrando ausência', 'Impacto real demonstrado (iframe, XSS, etc)']
+  }
+};
+
+function buildEvidenceFromFindings(rp) {
+  const findings = rp.all_findings || [];
+  const target = rp.target || rp.url || '—';
+  evData = [];
+
+  findings.forEach((f, idx) => {
+    if (!f || !f.title) return;
+    const key = Object.keys(EV_SCREENSHOT_GUIDE).find(k =>
+      (f.type||'').toLowerCase().includes(k.toLowerCase()) ||
+      (f.title||'').toLowerCase().includes(k.toLowerCase())
+    );
+    const guide = key ? EV_SCREENSHOT_GUIDE[key] : null;
+    const sev = f.severity || 'INFO';
+
+    evData.push({
+      idx,
+      id: f.id || ('VULN-' + String(idx+1).padStart(3,'0')),
+      title: f.title || 'Vulnerabilidade #' + (idx+1),
+      severity: sev,
+      cvss: parseFloat(f.cvss) || null,
+      type: f.type || 'UNKNOWN',
+      description: f.description || '—',
+      remediation: f.remediation || '—',
+      references: Array.isArray(f.references) ? f.references : [],
+      evidence: (f.evidence && typeof f.evidence === 'object') ? f.evidence : {},
+      target,
+      guide,
+      raw: f
+    });
+  });
+
+  evData.sort((a,b) => (SEVERITY_ORDER[a.severity]||4) - (SEVERITY_ORDER[b.severity]||4));
+}
+
+function renderEvidence() {
+  const filtered = evFilter === 'ALL' ? evData : evData.filter(p => p.severity === evFilter);
+  const list = el('ev-list');
+  if (!filtered.length) {
+    list.innerHTML = '<div class="poc-no-results">NENHUMA PROVA PARA O FILTRO SELECIONADO</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map((ev, i) => {
+    const sevColor = SEVERITY_COLORS[ev.severity] || 'var(--text3)';
+    const sevLabel = {CRITICAL:'CRÍTICO',HIGH:'ALTO',MEDIUM:'MÉDIO',LOW:'BAIXO',INFO:'INFO'}[ev.severity] || ev.severity;
+    const g = ev.guide;
+    const icon = g ? g.icon : '📸';
+
+    const slots = g ? g.screenshots : [
+      { label: 'SCREENSHOT 1', desc: 'Capture a URL completa com o parâmetro/campo vulnerável visível.' },
+      { label: 'SCREENSHOT 2', desc: 'Capture a resposta anômala do servidor (erro, dados expostos, comportamento inesperado).' },
+      { label: 'SCREENSHOT 3', desc: 'Capture o Burp Repeater mostrando Request + Response lado a lado.' }
+    ];
+    const screenshotsHtml = slots.map((s, si) => {
+      const slotKey = `${scanId||'noscan'}_ev${i}_slot${si}`;
+      const stored = evImages[slotKey];
+      const thumbHtml = stored ? `
+        <div class="ev-thumb-wrap">
+          <img src="${stored}" alt="print ${si+1}">
+          <button class="ev-thumb-remove" onclick="removeEvImage('${slotKey}',event)">✕ remover</button>
+        </div>` : '';
+      const statusHtml = stored
+        ? `<span class="slot-status filled">✓ PROVA ANEXADA</span>`
+        : `<span class="slot-status empty">CLIQUE / ARRASTE / COLE</span>`;
+      return `
+      <div class="ev-upload-slot" id="slot-${slotKey}"
+           ondragover="evDragOver(event,'${slotKey}')"
+           ondragleave="evDragLeave(event,'${slotKey}')"
+           ondrop="evDrop(event,'${slotKey}')">
+        <input type="file" accept="image/*" onchange="evFileChosen(event,'${slotKey}')">
+        <div class="slot-meta">
+          <div class="slot-num">${si+1}</div>
+          <div class="slot-info">
+            <div class="slot-label">📸 ${esc(s.label)}</div>
+            <div class="slot-desc">${esc(s.desc)}</div>
+            <div class="slot-hint">↑ clique para selecionar arquivo, arraste uma imagem, ou cole (Ctrl+V) com o slot em foco</div>
+          </div>
+          ${statusHtml}
+        </div>
+        ${thumbHtml}
+      </div>`;
+    }).join('');
+
+    const checklistHtml = g ? `
+      <div class="poc-field" style="margin-top:12px">
+        <div class="poc-field-lbl">✅ Checklist de evidências</div>
+        <div style="margin-top:6px">${g.checklist.map(c =>
+          `<div style="font-family:var(--mono);font-size:10px;color:var(--text2);padding:4px 0;border-bottom:1px solid var(--border);display:flex;gap:8px"><span style="color:var(--red)">□</span>${esc(c)}</div>`
+        ).join('')}</div>
+      </div>` : '';
+
+    const burpTipHtml = g ? `
+      <div class="poc-field" style="margin-top:10px">
+        <div class="poc-field-lbl">🔀 Dica Burp Suite</div>
+        <div class="poc-code" style="margin-top:6px">${esc(g.burp_tip)}</div>
+      </div>` : '';
+
+    return `<div class="poc-vuln">
+      <div class="poc-vuln-head">
+        <span class="sev s-${ev.severity}">${sevLabel}</span>
+        <span style="font-size:16px">${icon}</span>
+        <span style="font-family:var(--mono);font-size:10px;color:var(--text3)">${esc(ev.type)}</span>
+        <span style="font-family:var(--mono);font-size:12px;color:var(--text);flex:1">${esc(ev.title)}</span>
+        <span style="font-family:var(--mono);font-size:10px;color:var(--text3)">${esc(ev.id)}</span>
+        <button class="poc-copy-btn" style="margin-left:10px" onclick="toggleEvBody(${i})">▼ VER PROVAS</button>
+      </div>
+      <div class="poc-vuln-body" id="ev-body-${i}" style="display:none">
+        <div class="poc-field">
+          <div class="poc-field-lbl">🎯 Alvo</div>
+          <div class="poc-field-val">${esc(ev.evidence?.target_url || ev.target)}</div>
+        </div>
+        ${ev.evidence?.captured_at ? `<div class="poc-field"><div class="poc-field-lbl">🕐 Capturado em</div><div class="poc-field-val">${esc(ev.evidence.captured_at)}</div></div>` : ''}
+        ${ev.evidence?.proof ? `<div class="poc-field"><div class="poc-field-lbl">✅ Prova Automática</div><div class="poc-code" style="margin-top:6px;color:var(--green)">${esc(ev.evidence.proof)}</div></div>` : ''}
+        ${ev.evidence?.payload ? `<div class="poc-field"><div class="poc-field-lbl">💉 Payload Testado</div><div class="poc-code" style="margin-top:6px">${esc(ev.evidence.payload)}</div></div>` : ''}
+        ${ev.evidence?.request ? `<div class="poc-field"><div class="poc-field-lbl">📤 Request Capturado</div><div class="poc-code" style="margin-top:6px;font-size:9px;max-height:120px;overflow:auto">${esc(ev.evidence.request.split('\n').slice(0,8).join('\n'))}</div></div>` : ''}
+        ${ev.evidence?.response ? `<div class="poc-field"><div class="poc-field-lbl">📥 Response Capturada</div><div class="poc-code" style="margin-top:6px;font-size:9px;max-height:120px;overflow:auto">${esc(ev.evidence.response.split('\n').slice(0,8).join('\n'))}</div></div>` : ''}
+        <div class="poc-field">
+          <div class="poc-field-lbl">📋 Descrição da Vulnerabilidade</div>
+          <div class="poc-field-val">${esc(ev.description)}</div>
+        </div>
+        <div class="poc-field">
+          <div class="poc-field-lbl">📸 Screenshots necessários para submissão</div>
+          <div style="margin-top:10px">${screenshotsHtml}</div>
+        </div>
+        ${burpTipHtml}
+        ${checklistHtml}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleEvBody(i) {
+  const b = el('ev-body-'+i);
+  b.style.display = b.style.display === 'none' ? 'block' : 'none';
+}
+
+// ── Evidence image store (in-memory, keyed by slotKey) ──────────────────────
+let evImages = {};
+
+function evSaveImage(slotKey, dataUrl) {
+  evImages[slotKey] = dataUrl;
+  try { localStorage.setItem('ev_img_' + slotKey, dataUrl); } catch(e) {}
+  refreshSlot(slotKey);
+}
+
+function removeEvImage(slotKey, e) {
+  if (e) { e.stopPropagation(); e.preventDefault(); }
+  delete evImages[slotKey];
+  try { localStorage.removeItem('ev_img_' + slotKey); } catch(e2) {}
+  refreshSlot(slotKey);
+}
+
+function loadStoredImages() {
+  // reload from localStorage for current scan
+  if (!scanId) return;
+  try {
+    for (let k in localStorage) {
+      if (k.startsWith('ev_img_' + scanId)) {
+        const slotKey = k.replace('ev_img_', '');
+        evImages[slotKey] = localStorage.getItem(k);
+      }
+    }
+  } catch(e) {}
+}
+
+function refreshSlot(slotKey) {
+  // Re-render just the changed slot without full re-render
+  const slot = document.getElementById('slot-' + slotKey);
+  if (!slot) return;
+  const stored = evImages[slotKey];
+  // update status badge
+  const statusEl = slot.querySelector('.slot-status');
+  if (statusEl) {
+    statusEl.className = 'slot-status ' + (stored ? 'filled' : 'empty');
+    statusEl.textContent = stored ? '✓ PROVA ANEXADA' : 'CLIQUE / ARRASTE / COLE';
+  }
+  // update or remove thumb
+  let thumbWrap = slot.querySelector('.ev-thumb-wrap');
+  if (stored) {
+    if (!thumbWrap) {
+      thumbWrap = document.createElement('div');
+      thumbWrap.className = 'ev-thumb-wrap';
+      slot.appendChild(thumbWrap);
+    }
+    thumbWrap.innerHTML = `<img src="${stored}" alt="print"><button class="ev-thumb-remove" onclick="removeEvImage('${slotKey}',event)">✕ remover</button>`;
+  } else {
+    if (thumbWrap) thumbWrap.remove();
+  }
+}
+
+function readFileToSlot(file, slotKey) {
+  if (!file || !file.type.startsWith('image/')) return;
+  const reader = new FileReader();
+  reader.onload = e => evSaveImage(slotKey, e.target.result);
+  reader.readAsDataURL(file);
+}
+
+function evFileChosen(event, slotKey) {
+  const file = event.target.files[0];
+  if (file) readFileToSlot(file, slotKey);
+}
+
+function evDragOver(event, slotKey) {
+  event.preventDefault();
+  document.getElementById('slot-' + slotKey)?.classList.add('drag-over');
+}
+
+function evDragLeave(event, slotKey) {
+  document.getElementById('slot-' + slotKey)?.classList.remove('drag-over');
+}
+
+function evDrop(event, slotKey) {
+  event.preventDefault();
+  document.getElementById('slot-' + slotKey)?.classList.remove('drag-over');
+  const file = event.dataTransfer?.files[0];
+  if (file) readFileToSlot(file, slotKey);
+  // also handle image dragged from browser
+  const url = event.dataTransfer?.getData('text/uri-list') || event.dataTransfer?.getData('text/plain');
+  if (!file && url && url.startsWith('data:image')) evSaveImage(slotKey, url);
+}
+
+// Global paste: pastes into whichever slot is hovered / last clicked
+let _activeSlotKey = null;
+document.addEventListener('click', e => {
+  const slot = e.target.closest('.ev-upload-slot');
+  if (slot) _activeSlotKey = slot.id.replace('slot-', '');
+});
+document.addEventListener('paste', e => {
+  const items = e.clipboardData?.items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      const file = item.getAsFile();
+      // use active slot if set, else find first visible open slot
+      let key = _activeSlotKey;
+      if (!key) {
+        const firstOpen = document.querySelector('.ev-upload-slot .slot-status.empty');
+        if (firstOpen) key = firstOpen.closest('.ev-upload-slot')?.id.replace('slot-','');
+      }
+      if (key) { e.preventDefault(); readFileToSlot(file, key); }
+      break;
+    }
+  }
+});
+
+function setEvFilter(sev) {
+  evFilter = sev;
+  document.querySelectorAll('.ev-filter-btn').forEach(f => f.classList.toggle('active', f.dataset.sev === sev));
+  renderEvidence();
+}
+
+function fillEvidence(rp) {
+  buildEvidenceFromFindings(rp);
+  loadStoredImages();
+  const total = evData.length;
+
+  if (!total) {
+    el('ev-empty-state').style.display = 'block';
+    el('ev-loaded-state').style.display = 'none';
+    el('ev-zip-btn').style.display = 'none';
+    el('ev-export-btn').style.display = 'none';
+    return;
+  }
+
+  el('ev-empty-state').style.display = 'none';
+  el('ev-loaded-state').style.display = 'block';
+  el('ev-zip-btn').style.display = 'inline-block';
+  el('ev-export-btn').style.display = 'inline-block';
+  el('ev-count-label').textContent = total + ' PROVAS GERADAS';
+
+  const counts = {CRITICAL:0,HIGH:0,MEDIUM:0,LOW:0,INFO:0};
+  evData.forEach(p => counts[p.severity] = (counts[p.severity]||0)+1);
+
+  el('ev-summary-grid').innerHTML = [
+    {sev:'CRITICAL',label: "CRÍTICO",color:'var(--red)'},
+    {sev:'HIGH',label: "ALTO",color:'var(--orange)'},
+    {sev:'MEDIUM',label: "MÉDIO",color:'var(--blue)'}
+  ].filter(s => counts[s.sev] > 0).map(s =>
+    `<div class="poc-summary-item"><div class="poc-summary-num" style="color:${s.color}">${counts[s.sev]}</div><div class="poc-summary-lbl">${s.label}</div></div>`
+  ).join('');
+
+  const filters = [['ALL','TODOS'],...Object.entries({CRITICAL:'CRÍTICO',HIGH:'ALTO',MEDIUM:'MÉDIO',LOW:'BAIXO',INFO:'INFO'}).filter(([k])=>counts[k]>0)];
+  el('ev-filter-bar').innerHTML = filters.map(([sev,lbl]) =>
+    `<button class="poc-filter ev-filter-btn ${sev===evFilter?'active':''}" data-sev="${sev}" onclick="setEvFilter('${sev}')">${lbl} ${sev==='ALL'?'('+total+')':'('+counts[sev]+')'}</button>`
+  ).join('');
+
+  renderEvidence();
+}
+
+function dlEvidenceZip() {
+  if (!scanId) return;
+  window.open(`${API}/api/scans/${scanId}/evidence/`, '_blank');
+}
+
+function exportEvidence() {
+  if (!evData.length) return;
+
+  const target  = evData[0]?.target || 'alvo';
+  const date    = new Date().toLocaleDateString('pt-BR');
+  const sevPT   = {CRITICAL:'CRÍTICO',HIGH:'ALTO',MEDIUM:'MÉDIO',LOW:'BAIXO',INFO:'INFO'};
+  const sevEmoji= {CRITICAL:'🔴',HIGH:'🟠',MEDIUM:'🟡',LOW:'🔵',INFO:'⚪'};
+
+  // ── Para o DONO DA EMPRESA (não técnico) ─────────────────────────────────
+  const bizImpact = {
+    'CVE':    'Uma vulnerabilidade conhecida publicamente foi encontrada no software que o seu sistema usa. ' +
+              'Isso significa que existem ferramentas automáticas na internet que qualquer pessoa pode usar ' +
+              'para atacar o seu sistema sem precisar de conhecimento técnico especializado. ' +
+              'É como deixar a porta de trás da sua empresa aberta porque a fechadura tem defeito de fábrica já documentado.',
+    'OWASP':  'Esta falha faz parte da lista OWASP Top 10 — as 10 vulnerabilidades mais exploradas no mundo, ' +
+              'utilizada como referência por auditores, seguradoras e certificações de segurança. ' +
+              'A presença desta falha pode ser um impedimento em processos de certificação ou contratos com clientes corporativos.',
+    'WAF':    'O seu sistema possui um firewall de aplicação (WAF) para bloquear ataques, mas ele pode ser ' +
+              'contornado com técnicas específicas. Isso significa que a proteção existe, mas não é suficiente sozinha. ' +
+              'Ataques direcionados ao seu negócio podem passar por ela.',
+    'Header': 'O servidor não está enviando uma instrução de segurança obrigatória para o navegador dos seus usuários. ' +
+              'Sem essa instrução, o navegador fica sem saber como se proteger contra certos tipos de ataque, ' +
+              'como páginas falsas que imitam o seu site ou scripts maliciosos que roubam dados de quem está navegando.',
+    'TLS':    'O certificado de segurança do seu site tem um problema. Quando usuários acessarem, ' +
+              'o navegador deles irá exibir um alerta vermelho de "Conexão não segura". ' +
+              'Isso prejudica diretamente a credibilidade do negócio, afasta clientes e penaliza o posicionamento no Google.',
+  };
+
+  // ── Para o DESENVOLVEDOR (técnico) ───────────────────────────────────────
+  const devDetail = {
+    'CVE':    'Versão de software com CVE público detectada via fingerprint nos headers HTTP. ' +
+              'Confirmar a versão exata e verificar o range afetado no NVD antes de priorizar a remediação.',
+    'OWASP':  'Recurso retornou HTTP 200 sem cookie de sessão ou header Authorization. ' +
+              'Implementar middleware de autenticação obrigatório antes do handler da rota.',
+    'WAF':    'Payload com técnica de ofuscação não retornou HTTP 403 do WAF. ' +
+              'Revisar as regras do WAF para normalizar encoding antes de aplicar as regras de bloqueio.',
+    'Header': 'Header de segurança ausente na response HTTP. Adicionar no servidor web ou no middleware da aplicação. ' +
+              'Verificar se o CDN ou proxy reverso está removendo o header antes de chegar ao cliente.',
+    'TLS':    'Certificado TLS inválido detectado via handshake SSL. Verificar validade, cadeia de CA e configuração do servidor.',
+  };
+
+  let md = '';
+  md += `# Relatório de Vulnerabilidades — PTaaS RedShield\n\n`;
+  md += `| Campo | Valor |\n|---|---|\n`;
+  md += `| **Alvo** | ${target} |\n`;
+  md += `| **Data do Scan** | ${date} |\n`;
+  md += `| **Total de Findings** | ${evData.length} |\n`;
+  md += `| **Críticos** | ${evData.filter(e=>e.severity==='CRITICAL').length} |\n`;
+  md += `| **Altos** | ${evData.filter(e=>e.severity==='HIGH').length} |\n`;
+  md += `| **Médios** | ${evData.filter(e=>e.severity==='MEDIUM').length} |\n\n`;
+  md += `> Este relatório foi gerado automaticamente pelo RedShield PTaaS.\n`;
+  md += `> Cada finding inclui: evidência capturada, comparação de comportamento, impacto de negócio e passos de reprodução.\n\n`;
+  md += `---\n\n`;
+
+  evData.forEach((ev, i) => {
+    const sev  = sevPT[ev.severity]  || ev.severity;
+    const emo  = sevEmoji[ev.severity] || '⚪';
+    const evid = ev.evidence || {};
+    const capturedAt  = evid.captured_at  || '';
+    const proof       = evid.proof        || '';
+    const reqHttp     = evid.request      || '';
+    const respHttp    = evid.response     || '';
+    const respStatus  = evid.response_status != null ? String(evid.response_status) : '';
+    const payloadUsed = evid.payload      || '';
+    const targetUrl   = evid.target_url   || ev.target || target;
+    const biz         = bizImpact[ev.type] || 'Vulnerabilidade detectada automaticamente pelo scanner.';
+
+    const dev = devDetail[ev.type] || ev.description;
+
+    md += `## ${emo} Finding ${i+1}: ${ev.title}\n\n`;
+
+    // ── Tabela resumo ──────────────────────────────────────────────────────
+    md += `| Campo | Valor |\n|---|---|\n`;
+    md += `| **Severidade** | ${emo} ${sev} |\n`;
+    md += `| **ID** | \`${ev.id}\` |\n`;
+    md += `| **Tipo** | ${ev.type} |\n`;
+    if (ev.cvss) md += `| **CVSS Score** | **${ev.cvss}** / 10.0 |\n`;
+    md += `| **URL Afetada** | \`${targetUrl}\` |\n`;
+    if (capturedAt) md += `| **Evidência capturada em** | ${capturedAt.replace('T',' ').replace('Z',' UTC')} |\n`;
+    if (respStatus) md += `| **HTTP Status da response** | ${respStatus} |\n`;
+    md += `\n`;
+
+    // ── Para o dono da empresa ────────────────────────────────────────────
+    md += `### 👔 Para o Gestor / Dono da Empresa\n\n`;
+    md += `${biz}\n\n`;
+
+    // ── Prova que a falha existe ──────────────────────────────────────────
+    if (proof) {
+      md += `**O que o scanner observou:**\n\n`;
+      md += `> ${proof}\n\n`;
+    }
+
+    // ── Para o desenvolvedor ──────────────────────────────────────────────
+    md += `### 👨‍💻 Para o Desenvolvedor\n\n`;
+    md += `${dev}\n\n`;
+    md += `**Descrição detalhada:**\n${ev.description}\n\n`;
+
+    // ── REQUEST HTTP COMPLETO ─────────────────────────────────────────────
+    if (reqHttp) {
+      md += `### 📤 Request HTTP Enviado pelo Scanner\n\n`;
+      md += `> Este é o request exato que o scanner enviou ao servidor.\n\n`;
+      md += `\`\`\`http\n${reqHttp}\n\`\`\`\n\n`;
+    }
+
+    // ── RESPONSE HTTP COMPLETA ────────────────────────────────────────────
+    if (respHttp) {
+      md += `### 📥 Response HTTP Recebida do Servidor\n\n`;
+      md += `> Esta é a response completa que o servidor retornou.\n`;
+      if (proof) md += `> **Atenção:** ${proof}\n`;
+      md += `\n`;
+      md += `\`\`\`http\n${respHttp}\n\`\`\`\n\n`;
+    }
+
+    // ── Payload testado ───────────────────────────────────────────────────
+    if (payloadUsed) {
+      md += `### 💉 Payload Testado\n\n`;
+      md += `O scanner usou o seguinte payload para confirmar a falha:\n\n`;
+      md += `\`\`\`\n${payloadUsed}\n\`\`\`\n\n`;
+    }
+
+    // ── Comando de confirmação independente ───────────────────────────────
+    md += `### 🧪 Verifique Você Mesmo (Confirmação Independente)\n\n`;
+    md += `> Execute o comando abaixo para confirmar a falha sem depender do scanner.\n\n`;
+    if (ev.type === 'Header') {
+      const h = ev.id.replace('HEADER-','');
+      md += `\`\`\`bash\ncurl -sI "${targetUrl}" | grep -i "${h.toLowerCase()}"\n\`\`\`\n\n`;
+      md += `**Resultado se a falha existir:** nenhuma linha retornada (header ausente).\n`;
+      md += `**Resultado após a correção:** \`${h}: <valor>\` aparece na saída.\n\n`;
+    } else if (ev.type === 'TLS') {
+      const tlsHost = targetUrl.replace(/https?:\/\//,'').split('/')[0];
+      md += `\`\`\`bash\necho | openssl s_client -connect ${tlsHost}:443 2>/dev/null | openssl x509 -noout -dates -issuer\n\`\`\`\n\n`;
+      md += `**Resultado se a falha existir:** campo \`notAfter\` com data no passado, ou \`issuer = subject\` (auto-assinado).\n`;
+      md += `**Resultado após a correção:** \`notAfter\` com data futura e issuer de CA confiável.\n\n`;
+    } else if (ev.type === 'CVE') {
+      const nvdRef = (ev.references||[]).find(r=>r.includes('nvd.nist.gov')) || `https://nvd.nist.gov/vuln/detail/${ev.id}`;
+      md += `\`\`\`bash\ncurl -sI "${targetUrl}" | grep -iE "server|x-powered-by|x-generator"\n\`\`\`\n\n`;
+      md += `Compare a versão exibida com o range afetado listado em:\n${nvdRef}\n\n`;
+      md += `**Resultado se a falha existir:** versão dentro do range afetado descrito no NVD.\n`;
+      md += `**Resultado após a correção:** versão atualizada fora do range, ou header removido.\n\n`;
+    } else if (ev.type === 'OWASP') {
+      md += `\`\`\`bash\ncurl -v --cookie "" "${targetUrl}" 2>&1 | grep -E "^< HTTP|^< [Ll]ocation"\n\`\`\`\n\n`;
+      md += `**Resultado se a falha existir:** \`< HTTP/1.1 200\` sem linha de Location para /login.\n`;
+      md += `**Resultado após a correção:** \`< HTTP/1.1 301\` ou \`302\` com \`Location: .../login\`.\n\n`;
+    } else if (payloadUsed) {
+      md += `\`\`\`bash\ncurl -s "${targetUrl}"\n\`\`\`\n\n`;
+      md += `Compare esta response com uma requisição normal ao mesmo endpoint sem o payload.\n`;
+      md += `**Comportamento diferente** (status, tamanho, conteúdo) = falha confirmada.\n\n`;
+    }
+
+    // ── Comparação lado a lado ────────────────────────────────────────────
+    md += `### ⚖️ Comportamento Atual vs. Esperado\n\n`;
+    md += `| | 🔴 Atual — Vulnerável | ✅ Esperado — Seguro |\n|---|---|---|\n`;
+    const comparisons = {
+      'Header': [
+        `Header \`${ev.id.replace('HEADER-','')}\` **ausente** — response não instrui o browser a se proteger`,
+        `Header \`${ev.id.replace('HEADER-','')}\` **presente** — browser recebe e aplica a política de segurança`
+      ],
+      'TLS':    [
+        'Certificado **inválido/expirado** — browser exibe alerta vermelho de "Conexão não segura"',
+        'Certificado **válido** emitido por CA confiável — cadeado verde no browser'
+      ],
+      'CVE':    [
+        `Versão **desatualizada** com \`${ev.id}\` público e exploits disponíveis`,
+        'Versão **atualizada** sem CVEs críticos abertos no NVD'
+      ],
+      'OWASP':  [
+        'Recurso retorna **HTTP 200** sem autenticação — acesso indevido',
+        'Recurso retorna **HTTP 401 ou 403** — exige credenciais válidas'
+      ],
+      'WAF':    [
+        'Payload ofuscado **não bloqueado** — WAF não reconheceu a técnica',
+        'WAF bloqueia com **HTTP 403** independente da ofuscação'
+      ],
+    };
+    const [atual, esperado] = comparisons[ev.type] || [
+      'Comportamento anômalo detectado pelo scanner',
+      'Comportamento seguro e conforme as boas práticas'
+    ];
+    md += `| **Servidor** | ${atual} | ${esperado} |\n\n`;
+
+    // ── Remediação ────────────────────────────────────────────────────────
+    md += `### 🔧 Como Corrigir\n\n`;
+    md += `${ev.remediation}\n\n`;
+
+    // ── Referências ───────────────────────────────────────────────────────
+    if (ev.references && ev.references.length > 0) {
+      md += `### 🔗 Referências\n\n`;
+      ev.references.forEach(r => { md += `- ${r}\n`; });
+      md += `\n`;
+    }
+
+    md += `---\n\n`;
+  });
+
+  md += `\n*Relatório gerado pelo RedShield PTaaS — ${new Date().toLocaleString('pt-BR')}*\n`;
+
+  const blob = new Blob([md], {type:'text/markdown;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `relatorio-redshield-${new Date().toISOString().slice(0,10)}.md`;
+  a.click();
+}
+
+// ─── UTILS ──────────────────────────────────────────────────────────────────
+function el(id) { return document.getElementById(id); }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+{% endverbatim %}
+</script>
+</body>
+</html>
